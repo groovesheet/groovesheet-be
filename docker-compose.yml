@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  drumscore-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: drumscore-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount uploads and outputs for persistence
+      - ./backend/uploads:/app/backend/uploads
+      - ./backend/outputs:/app/backend/outputs
+      - ./backend/logs:/app/backend/logs
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=False
+      - DEMUCS_DEVICE=cpu  # Change to 'cuda' if using GPU
+      - OMNIZART_DEVICE=cpu  # Change to 'cuda' if using GPU
+      - MAX_CONCURRENT_JOBS=2
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5m
+    # Uncomment for GPU support
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+# For GPU support, also add:
+# Add the following at the end of the file:
+# runtime: nvidia
+# And install nvidia-docker2 on the host

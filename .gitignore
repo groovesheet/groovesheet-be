@@ -1,0 +1,154 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/temp/*
+!backend/temp/.gitkeep
+backend/outputs/*
+!backend/outputs/.gitkeep
+backend/models/*
+!backend/models/.gitkeep
+backend/logs/*
+!backend/logs/.gitkeep
+
+# Output directories
+outputs/
+test_output/
+test_comparison_output/
+test_omnizart_8class_output/
+test_results/
+logs/
+temp/
+uploads/
+
+# Training data (too large for git)
+training_data/
+AnNOTEator/dataset/
+models/omnizart_checkpoints/
+
+# Model checkpoints (too large for git)
+*.ckpt
+*.pth
+*.h5
+*.pb
+*.pkl
+
+# Audio files
+*.mp3
+*.wav
+*.flac
+*.ogg
+*.m4a
+
+# MIDI files (can be large)
+*.mid
+*.midi
+
+# MusicXML files (generated, can be large)
+*.musicxml
+*.mxl
+
+# Document files
+*.pdf
+
+# Jupyter Notebooks (keep source, ignore checkpoints)
+.ipynb_checkpoints/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Virtual environments (specific names in your project)
+venv38/
+
+# Gradle (for midi2musicxml)
+.gradle/
+build/
+**/build/
+.gradletasknamecache
+
+# Java/Kotlin compiled
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# Node modules (if any)
+node_modules/
+
+# Test and comparison outputs
+test_*.py.bak
+*_output/
+*_results/
+
+# Large dataset files
+*.zip
+*.tar.gz
+*.rar
+
+# Generated MusicXML and MIDI from testing
+test_output/*.musicxml
+test_output/*.mid
+baseline_*.mid
+baseline_*.musicxml
