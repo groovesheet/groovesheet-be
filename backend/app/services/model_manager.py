@@ -22,29 +22,36 @@ class ModelManager:
     
     async def initialize(self):
         """Initialize all services"""
+        logger.info("Initializing ModelManager...")
+        
+        # Initialize Demucs service
         try:
-            logger.info("Initializing ModelManager...")
-            
-            # Initialize Demucs service
             logger.info("Initializing Demucs service...")
             self.demucs_service = DemucsService()
             await self.demucs_service.initialize()
-            
-            # Initialize Omnizart service
+        except Exception as e:
+            logger.error(f"Failed to initialize Demucs service: {e}")
+            logger.warning("Continuing without Demucs service...")
+        
+        # Initialize Omnizart service (optional)
+        try:
             logger.info("Initializing Omnizart service...")
             self.omnizart_service = OmnizartService()
             await self.omnizart_service.initialize()
-            
-            # Initialize Sheet Music service
+        except Exception as e:
+            logger.warning(f"Omnizart service not available: {e}")
+            logger.info("Continuing without Omnizart service...")
+        
+        # Initialize Sheet Music service
+        try:
             logger.info("Initializing Sheet Music service...")
             self.sheet_music_service = SheetMusicService()
-            
-            self.initialized = True
-            logger.info("ModelManager initialization complete")
-            
         except Exception as e:
-            logger.error(f"Failed to initialize ModelManager: {str(e)}")
-            raise
+            logger.error(f"Failed to initialize Sheet Music service: {e}")
+            logger.warning("Continuing without Sheet Music service...")
+        
+        self.initialized = True
+        logger.info("ModelManager initialization complete")
     
     async def cleanup(self):
         """Cleanup all services"""

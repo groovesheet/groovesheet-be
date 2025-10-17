@@ -16,7 +16,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 from app.core.config import settings
 from app.core.logging_config import setup_logging
-from app.api.routes import transcription, health
+from app.api.routes import transcription, health, annoteator
 from app.services.model_manager import ModelManager
 
 # Setup logging
@@ -77,6 +77,7 @@ if os.path.exists(settings.OUTPUT_DIR):
 # Include routers
 app.include_router(health.router, prefix="/api/v1", tags=["Health"])
 app.include_router(transcription.router, prefix="/api/v1", tags=["Transcription"])
+app.include_router(annoteator.router, tags=["AnNOTEator"])
 
 
 @app.get("/")
