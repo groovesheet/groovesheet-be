@@ -1,4 +1,6 @@
-FROM python:3.8-slim
+# Force Linux AMD64 platform - required for TensorFlow 2.5.0 compatibility
+# This ensures macOS users can build the image using TensorFlow Linux wheels
+FROM --platform=linux/amd64 python:3.8-slim
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \

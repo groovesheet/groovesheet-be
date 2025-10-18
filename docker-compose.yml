@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    platform: linux/amd64  # Force Linux AMD64 platform (required for TensorFlow 2.5.0 on macOS)
     container_name: drumscore-backend
     ports:
       - "8000:8000"
