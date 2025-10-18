@@ -1,39 +1,59 @@
 FROM python:3.8-slim
 
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    DEBIAN_FRONTEND=noninteractive
+
 # Set working directory
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
-    ffmpeg \
-    libsndfile1 \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Build tools (required for compiling C extensions)
+    build-essential \
+    gcc \
+    g++ \
     git \
     wget \
-    build-essential \
+    # FFmpeg for audio processing
+    ffmpeg \
+    libsndfile1 \
+    # For madmom and other audio libs
+    libffi-dev \
+    libssl-dev \
+    # Clean up to reduce image size
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy demucs and omnizart repositories
+# Copy only requirements first to leverage Docker cache
+COPY backend/requirements.txt /app/backend/requirements.txt
+
+# Install Python dependencies with proper order (matching setup.py)
+# Step 1: Upgrade pip, setuptools, wheel
+RUN pip install --upgrade pip setuptools wheel
+
+# Step 2: Install Cython first (required for madmom compilation)
+RUN pip install 'Cython>=0.29.24'
+
+# Step 3: Install NumPy (required by TensorFlow and many packages)
+RUN pip install 'numpy==1.19.5'
+
+# Step 4: Install remaining dependencies
+RUN pip install --no-cache-dir -r /app/backend/requirements.txt
+
+# Copy application code
+COPY backend /app/backend
+COPY AnNOTEator /app/AnNOTEator
 COPY demucs /app/demucs
 COPY omnizart /app/omnizart
 
-# Copy backend application
-COPY backend /app/backend
-
-# Set working directory to backend
-WORKDIR /app/backend
-
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
-
-# Install demucs
-RUN cd /app/demucs && pip install -e .
-
-# Install omnizart
-RUN cd /app/omnizart && pip install -e .
-
-# Download model checkpoints
-RUN python -c "import omnizart; omnizart.download_checkpoints()" || echo "Checkpoints will be downloaded on first use"
+# Install demucs and omnizart (if needed)
+# Note: Most dependencies are already in requirements.txt
+RUN cd /app/demucs && pip install -e . || echo "Demucs already available"
+RUN cd /app/omnizart && pip install -e . || echo "Omnizart already available"
 
 # Create necessary directories
 RUN mkdir -p /app/backend/uploads \
@@ -42,16 +62,21 @@ RUN mkdir -p /app/backend/uploads \
     /app/backend/models \
     /app/backend/logs
 
+# Set proper permissions
+RUN chmod -R 755 /app
+
+# Set PYTHONPATH to include all modules
+ENV PYTHONPATH=/app:/app/backend:/app/AnNOTEator:/app/demucs:/app/omnizart:$PYTHONPATH
+
 # Expose port
 EXPOSE 8000
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app/backend:/app/demucs:/app/omnizart:$PYTHONPATH
-
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5m --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/api/v1/health')" || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=5)" || exit 1
+
+# Set working directory to backend
+WORKDIR /app/backend
 
 # Run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

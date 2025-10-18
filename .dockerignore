@@ -1,0 +1,68 @@
+# Git
+.git
+.gitignore
+.gitmodules
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+venv38/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+backend/uploads/*
+backend/temp/*
+backend/outputs/*
+backend/logs/*
+!backend/uploads/.gitkeep
+!backend/temp/.gitkeep
+!backend/outputs/.gitkeep
+!backend/logs/.gitkeep
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# Test files
+test_*.py
+*_test.py
+tests/
+
+# Large model files that should be mounted as volumes
+# (Uncomment if you want to exclude them from image)
+# models/
+# AnNOTEator/inference/pretrained_models/
+
+# Development
+.env.local
+.env.development
+docker-compose.override.yml
+
+# Demucs and Omnizart source (if not needed in container)
+demucs/
+omnizart/
+
+# Output directories from testing
+test_output/
+test_comparison_output/
+test_omnizart_8class_output/
