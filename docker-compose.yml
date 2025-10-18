@@ -28,6 +28,8 @@ services:
       - MAX_CONCURRENT_JOBS=2
       # Logging
       - LOG_LEVEL=INFO
+      # Fix protobuf version mismatch (TensorFlow 2.5.0 compiled with 3.9.2, runtime has 3.20.3)
+      - PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=5)"]

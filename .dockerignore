@@ -53,16 +53,26 @@ tests/
 # models/
 # AnNOTEator/inference/pretrained_models/
 
+# Dataset files (large, not needed in container)
+AnNOTEator/dataset/
+
 # Development
 .env.local
 .env.development
 docker-compose.override.yml
 
 # Demucs and Omnizart source (if not needed in container)
-demucs/
-omnizart/
+# demucs/
+# omnizart/
 
 # Output directories from testing
 test_output/
 test_comparison_output/
 test_omnizart_8class_output/
+
+# Additional exclusions
+uploads/
+temp/
+logs/
+*.tar.gz
+*.zip

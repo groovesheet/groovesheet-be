@@ -12,8 +12,10 @@ Cython>=0.29.24  # Required for building madmom and other C extensions
 torch==1.13.1
 torchaudio==0.13.1
 
-# TensorFlow (for Omnizart) - Python 3.8 compatible
-tensorflow==2.5.0
+# TensorFlow (for Omnizart) - MUST match local working version
+# NOTE: tensorflow and protobuf are installed separately in Dockerfile to avoid typing-extensions conflicts
+# tensorflow==2.5.0
+# protobuf==3.20.3
 # For GPU: tensorflow-gpu==2.5.0
 
 # Demucs dependencies
@@ -55,5 +57,5 @@ music21>=8.3.0
 python-dotenv==1.0.0
 aiofiles==23.2.1
 pandas>=1.4.3  # Required for AnNOTEator data processing
-numpy==1.19.5  # Compatible with TensorFlow 2.5.0 and Python 3.8
+numpy==1.19.5  # Compatible with TensorFlow 2.5.0 and Python 3.8 - MUST match local
 matplotlib>=3.5.3  # For visualization (optional)

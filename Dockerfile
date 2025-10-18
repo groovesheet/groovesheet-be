@@ -38,11 +38,17 @@ RUN pip install --upgrade pip setuptools wheel
 # Step 2: Install Cython first (required for madmom compilation)
 RUN pip install 'Cython>=0.29.24'
 
-# Step 3: Install NumPy (required by TensorFlow and many packages)
+# Step 3: Install NumPy (required by TensorFlow 2.5.0 - MUST be 1.19.x)
 RUN pip install 'numpy==1.19.5'
 
-# Step 4: Install remaining dependencies
+# Step 4: Install TensorFlow FIRST with compatible protobuf (3.20.x works on local machine)
+RUN pip install 'tensorflow==2.5.0' 'protobuf>=3.20.0,<4.0'
+
+# Step 5: Install remaining dependencies (excluding tensorflow and protobuf)
 RUN pip install --no-cache-dir -r /app/backend/requirements.txt
+
+# Step 6: CRITICAL - Force upgrade typing-extensions after all other packages
+RUN pip install --upgrade --force-reinstall 'typing-extensions>=4.8.0'
 
 # Copy application code
 COPY backend /app/backend
@@ -54,6 +60,12 @@ COPY omnizart /app/omnizart
 # Note: Most dependencies are already in requirements.txt
 RUN cd /app/demucs && pip install -e . || echo "Demucs already available"
 RUN cd /app/omnizart && pip install -e . || echo "Omnizart already available"
+
+# CRITICAL: Re-fix protobuf after omnizart (it may downgrade)
+RUN pip install --force-reinstall 'protobuf>=3.20.0,<4.0'
+
+# CRITICAL: Re-upgrade typing-extensions after omnizart installation (omnizart downgrades it)
+RUN pip install --upgrade --force-reinstall 'typing-extensions>=4.8.0'
 
 # Create necessary directories
 RUN mkdir -p /app/backend/uploads \
