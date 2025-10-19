@@ -94,6 +94,10 @@ models/omnizart_checkpoints/
 *.pb
 *.pkl
 
+# BUT allow AnNOTEator pretrained models (needed for inference)
+!AnNOTEator/inference/pretrained_models/annoteators/*.h5
+!AnNOTEator/inference/pretrained_models/annoteators/*.pb
+
 # Audio files
 *.mp3
 *.wav
