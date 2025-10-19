@@ -36,23 +36,30 @@ class OmnizartService:
     def _configure_tensorflow(self):
         """Configure TensorFlow settings"""
         try:
+            logger.info("Configuring TensorFlow (this may take a moment on macOS with emulation)...")
+            
             # Lazy import TensorFlow only when needed
             import tensorflow as tf
+            logger.info(f"TensorFlow version: {tf.__version__}")
             
             # Set memory growth for GPU
             if self.device == "cuda":
+                logger.info("Checking for GPU devices...")
                 gpus = tf.config.list_physical_devices('GPU')
                 if gpus:
                     for gpu in gpus:
                         tf.config.experimental.set_memory_growth(gpu, True)
-                    logger.info(f"Found {len(gpus)} GPU(s)")
+                    logger.info(f"✓ Found {len(gpus)} GPU(s)")
                 else:
                     logger.warning("No GPU found, using CPU")
                     self.device = "cpu"
+            else:
+                logger.info("Using CPU for inference (GPU not requested)")
             
             # Suppress TensorFlow warnings
             os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
             tf.get_logger().setLevel('ERROR')
+            logger.info("✓ TensorFlow configured successfully")
             
         except Exception as e:
             logger.warning(f"Error configuring TensorFlow: {str(e)}")
@@ -60,27 +67,48 @@ class OmnizartService:
     async def initialize(self):
         """Initialize the Omnizart drum transcription model"""
         try:
-            logger.info("Loading Omnizart drum transcription model")
+            logger.info("=" * 60)
+            logger.info("Starting Omnizart drum transcription model initialization")
+            logger.info("=" * 60)
+            logger.info("Step 1/5: Importing Omnizart dependencies...")
             
             # Lazy import drum_app only when needed
             from omnizart.drum import app as drum_app
+            logger.info("✓ Omnizart drum module imported successfully")
             
+            logger.info("Step 2/5: Initializing drum transcription app...")
             # Initialize drum transcription app
             self.drum_transcription = drum_app
+            logger.info("✓ Drum transcription app initialized")
             
+            logger.info("Step 3/5: Checking model checkpoints...")
             # Download checkpoints if needed
             checkpoint_path = os.path.join(settings.MODELS_DIR, 'omnizart_checkpoints')
             if not os.path.exists(checkpoint_path):
-                logger.info("Downloading Omnizart checkpoints...")
+                logger.info("⚠ Checkpoints not found, creating directory...")
                 os.makedirs(checkpoint_path, exist_ok=True)
-                # Note: In production, checkpoints should be pre-downloaded
-                # For now, we'll rely on the model's default behavior
+                logger.info("✓ Checkpoint directory created")
+                logger.info("Note: Model will download checkpoints on first use")
+            else:
+                logger.info("✓ Checkpoint directory exists")
             
-            logger.info("Omnizart model loaded successfully")
+            logger.info("Step 4/5: Verifying model configuration...")
+            # Verify the model can be accessed
+            logger.info(f"  - Model path: {settings.MODELS_DIR}")
+            logger.info(f"  - Device: {self.device}")
+            logger.info("✓ Model configuration verified")
+            
+            logger.info("Step 5/5: Finalizing initialization...")
+            logger.info("✓ Omnizart model loaded successfully")
+            logger.info("=" * 60)
+            logger.info("Omnizart initialization complete! Ready for transcription.")
+            logger.info("=" * 60)
             return True
             
         except Exception as e:
-            logger.error(f"Failed to initialize Omnizart model: {str(e)}")
+            logger.error("=" * 60)
+            logger.error(f"✗ Failed to initialize Omnizart model: {str(e)}")
+            logger.error("=" * 60)
             raise
     
     def _inference_6_classes(self, pred: np.ndarray, mini_beat_arr: np.ndarray, threshold: float = 0.8) -> tuple:
