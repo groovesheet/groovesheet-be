@@ -40,6 +40,11 @@ class Settings(BaseSettings):
     FILE_RETENTION_HOURS: int = Field(default=24, env="FILE_RETENTION_HOURS")
     MAX_CONCURRENT_JOBS: int = Field(default=3, env="MAX_CONCURRENT_JOBS")
     
+    # Job storage settings
+    USE_CLOUD_STORAGE: bool = Field(default=False, env="USE_CLOUD_STORAGE")
+    GCS_BUCKET_NAME: str = Field(default="", env="GCS_BUCKET_NAME")
+    JOB_STORAGE_DIR: str = Field(default="./jobs", env="JOB_STORAGE_DIR")
+    
     # Demucs settings
     DEMUCS_MODEL: str = Field(default="htdemucs", env="DEMUCS_MODEL")
     DEMUCS_DEVICE: str = Field(default="cuda", env="DEMUCS_DEVICE")  # cuda or cpu
@@ -49,6 +54,7 @@ class Settings(BaseSettings):
     # Omnizart settings
     OMNIZART_DEVICE: str = Field(default="cuda", env="OMNIZART_DEVICE")
     OMNIZART_MODEL_PATH: str = Field(default="", env="OMNIZART_MODEL_PATH")
+    OMNIZART_CHECKPOINT_BUCKET: str = Field(default="groovesheet-omnizart-checkpoints", env="OMNIZART_CHECKPOINT_BUCKET")
     
     # Sheet music settings
     SHEET_MUSIC_FORMAT: str = Field(default="pdf", env="SHEET_MUSIC_FORMAT")

@@ -81,16 +81,15 @@ class OmnizartService:
             self.drum_transcription = drum_app
             logger.info("✓ Drum transcription app initialized")
             
-            logger.info("Step 3/5: Checking model checkpoints...")
-            # Download checkpoints if needed
-            checkpoint_path = os.path.join(settings.MODELS_DIR, 'omnizart_checkpoints')
-            if not os.path.exists(checkpoint_path):
-                logger.info("⚠ Checkpoints not found, creating directory...")
-                os.makedirs(checkpoint_path, exist_ok=True)
-                logger.info("✓ Checkpoint directory created")
-                logger.info("Note: Model will download checkpoints on first use")
+            logger.info("Step 3/5: Verifying model checkpoints...")
+            # Check if checkpoints exist (should be in the Docker image)
+            checkpoints_dir = os.path.join(OMNIZART_PATH, 'omnizart', 'checkpoints', 'drum')
+            if os.path.exists(checkpoints_dir):
+                checkpoint_files = os.listdir(checkpoints_dir)
+                logger.info(f"✓ Found {len(checkpoint_files)} checkpoint directories in {checkpoints_dir}")
             else:
-                logger.info("✓ Checkpoint directory exists")
+                logger.warning(f"⚠ Checkpoint directory not found: {checkpoints_dir}")
+                logger.info("Omnizart will attempt to download checkpoints on first use")
             
             logger.info("Step 4/5: Verifying model configuration...")
             # Verify the model can be accessed

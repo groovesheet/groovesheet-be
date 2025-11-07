@@ -18,7 +18,7 @@ def drum_extraction(path, dir=None, kernel='demucs', mode='performance', drum_st
                                         Please note that the demucs kernel could take 4-6 mins to process a song depends on the capability of your machine and the length of the audio
     :param mode (str):                  only applicable when demucs kernel is used. Accept either 'speed' or 'performance', default 'performance.
                                         demucs is a bad of 4 models, speed mode will only use 1 of the 4 models, performance mode will use all 4 modesls
-                                        As a result, speed mode will run 4x faster, but quality could be worse. Performance mode will ensure the best quality but much slower.  
+                                        A as a result, speed mode will run 4x faster, but quality could be worse. Performance mode will ensure the best quality but much slower.  
     :param drum_start (int):            the start of the music in the file (in seconds). Shorter audio will reduce the processing time significantly. If not set, assume to start at the begining of the track
     :param drum_end (int):              the end of the music in the file (in seconds). Shorter audio will reduce the processing time significantly. If not set, assume to end at the end of the track
 

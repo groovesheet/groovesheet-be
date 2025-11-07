@@ -43,8 +43,9 @@ RUN pip install 'Cython>=0.29.24'
 # Step 3: Install NumPy (required by TensorFlow 2.5.0 - MUST be 1.19.x)
 RUN pip install 'numpy==1.19.5'
 
-# Step 4: Install TensorFlow FIRST with compatible protobuf (3.20.x works on local machine)
-RUN pip install 'tensorflow==2.5.0' 'protobuf>=3.20.0,<4.0'
+# Step 4: Install TensorFlow FIRST with EXACT compatible protobuf version
+# TensorFlow 2.5.0 was compiled against protobuf 3.9.2
+RUN pip install 'tensorflow==2.5.0' 'protobuf==3.9.2'
 
 # Step 5: Install remaining dependencies (excluding tensorflow and protobuf)
 RUN pip install --no-cache-dir -r /app/backend/requirements.txt
@@ -63,8 +64,14 @@ COPY omnizart /app/omnizart
 RUN cd /app/demucs && pip install -e . || echo "Demucs already available"
 RUN cd /app/omnizart && pip install -e . || echo "Omnizart already available"
 
-# CRITICAL: Re-fix protobuf after omnizart (it may downgrade)
-RUN pip install --force-reinstall 'protobuf>=3.20.0,<4.0'
+# CRITICAL: Verify checkpoints exist in the image
+RUN echo "Checking for Omnizart checkpoints..." && \
+    ls -la /app/omnizart/omnizart/checkpoints/drum/ || echo "WARNING: Checkpoint directory not found!" && \
+    ls -la /app/omnizart/omnizart/checkpoints/drum/drum_keras/ || echo "WARNING: drum_keras directory not found!" && \
+    ls -la /app/omnizart/omnizart/checkpoints/drum/drum_keras/variables/ || echo "WARNING: variables directory not found!"
+
+# CRITICAL: Re-fix protobuf after omnizart (ensure 3.9.2 for TensorFlow 2.5.0 compatibility)
+RUN pip install --force-reinstall 'protobuf==3.9.2'
 
 # CRITICAL: Re-upgrade typing-extensions after omnizart installation (omnizart downgrades it)
 RUN pip install --upgrade --force-reinstall 'typing-extensions>=4.8.0'
