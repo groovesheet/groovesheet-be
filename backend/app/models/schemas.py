@@ -55,6 +55,7 @@ class TranscriptionJobStatus(BaseModel):
     result_url: Optional[str] = Field(None, description="URL to download the result PDF")
     midi_url: Optional[str] = Field(None, description="URL to download the MIDI file")
     drum_audio_url: Optional[str] = Field(None, description="URL to download the separated drum audio")
+    musicxml_url: Optional[str] = Field(None, description="URL to download the MusicXML file")
 
 
 class TranscriptionResult(BaseModel):

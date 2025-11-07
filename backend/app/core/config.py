@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     
     # CORS settings
     ALLOWED_ORIGINS: List[str] = Field(
-        default=["http://localhost:3000", "http://localhost:8000"],
+        default=["http://localhost:3000", "http://localhost:8000", "https://www.groovesheet.net",'https://groovesheet.net/','https://groovesheet-fe-git-main-groovesheets-projects.vercel.app'],
         env="ALLOWED_ORIGINS"
     )
     

@@ -159,6 +159,7 @@ async def get_job_status(job_id: str, request: Request):
             response.result_url = f"{base_url}/pdf"
             response.midi_url = f"{base_url}/midi"
             response.drum_audio_url = f"{base_url}/audio"
+            response.musicxml_url = f"{base_url}/musicxml"
         
         return response
         
@@ -289,4 +290,44 @@ async def download_drum_audio(job_id: str, request: Request):
         raise
     except Exception as e:
         logger.error(f"Error downloading audio: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/download/{job_id}/musicxml")
+async def download_musicxml(job_id: str, request: Request):
+    """
+    Download the generated MusicXML file
+    
+    Args:
+        job_id: The unique job identifier
+        
+    Returns:
+        MusicXML file
+    """
+    try:
+        processing_service = get_processing_service(request)
+        job = processing_service.get_job_status(job_id)
+        
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        
+        if job.status != ProcessingStatus.COMPLETED:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Job not completed. Current status: {job.status}"
+            )
+        
+        if not job.result or not os.path.exists(job.result.musicxml_path):
+            raise HTTPException(status_code=404, detail="MusicXML file not found")
+        
+        return FileResponse(
+            job.result.musicxml_path,
+            media_type="application/vnd.recordare.musicxml+xml",
+            filename=f"drum_sheet_{job_id}.musicxml"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error downloading MusicXML: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
