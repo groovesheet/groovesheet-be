@@ -8,6 +8,12 @@ pydantic-settings==2.1.0
 # Build dependencies (required before other packages)
 Cython>=0.29.24  # Required for building madmom and other C extensions
 
+# Cloud Storage for job persistence
+# NOTE: Commented out due to protobuf conflict with TensorFlow 2.5.0
+# google-cloud-storage will gracefully fail and fall back to local storage
+# WARNING: On Cloud Run, jobs may be lost if container instance changes during processing
+# google-cloud-storage>=2.10.0
+
 # PyTorch (for Demucs) - Python 3.8 compatible
 torch==1.13.1
 torchaudio==0.13.1
@@ -60,8 +66,7 @@ pandas>=1.4.3  # Required for AnNOTEator data processing
 numpy==1.19.5  # Compatible with TensorFlow 2.5.0 and Python 3.8 - MUST match local
 matplotlib>=3.5.3  # For visualization (optional)
 
-# Google Cloud Storage for persistent job storage
-# NOTE: Disabled due to protobuf conflict with TensorFlow 2.5.0
+# Google Cloud Storage moved to top of file (after Cython)
+# NOTE: Was previously disabled due to protobuf conflict with TensorFlow 2.5.0
 # TensorFlow 2.5.0 requires protobuf 3.9.2, but google-cloud-storage requires protobuf >= 3.19.5
-# Using local file storage for jobs instead
-# google-cloud-storage>=2.10.0
+# This conflict is handled in the Dockerfile by installing tensorflow and protobuf separately

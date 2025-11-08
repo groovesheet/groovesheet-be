@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./api-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - GCS_BUCKET_NAME=groovesheet-jobs
+      - GCP_PROJECT=groovesheet2025
+      - WORKER_TOPIC=groovesheet-worker-tasks
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
+    volumes:
+      - ./credentials.json:/app/credentials.json:ro
+    depends_on:
+      - pubsub-emulator
+
+  worker:
+    build:
+      context: ./worker-service
+      dockerfile: Dockerfile
+    environment:
+      - GCS_BUCKET_NAME=groovesheet-jobs
+      - GCP_PROJECT=groovesheet2025
+      - WORKER_SUBSCRIPTION=groovesheet-worker-tasks-sub
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
+      # Fix protobuf version mismatch (TensorFlow 2.5.0 needs this)
+      - PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+    volumes:
+      - ./credentials.json:/app/credentials.json:ro
+    depends_on:
+      - pubsub-emulator
+    # Resource limits for ML workload (same as original working container)
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 8G
+        reservations:
+          cpus: '2.0'
+          memory: 4G
+
+  # For local testing, use Pub/Sub emulator
+  pubsub-emulator:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    command: gcloud beta emulators pubsub start --host-port=0.0.0.0:8085
+    ports:
+      - "8085:8085"

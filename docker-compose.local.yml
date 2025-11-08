@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  api:
+    image: groovesheet-api:local
+    ports:
+      - "8080:8080"
+    environment:
+      - USE_CLOUD_STORAGE=false
+    volumes:
+      - ./shared-jobs:/app/jobs
+    networks:
+      - groovesheet
+
+  worker:
+    image: groovesheet-worker:local
+    environment:
+      - USE_CLOUD_STORAGE=false
+      - LOCAL_JOBS_DIR=/app/jobs
+      # Fix protobuf version mismatch (TensorFlow 2.5.0 needs this)
+      - PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+      # Match monolith backend settings
+      - LOG_LEVEL=INFO
+      - DEMUCS_DEVICE=cpu
+      - TF_CPP_MIN_LOG_LEVEL=3
+    volumes:
+      - ./shared-jobs:/app/jobs
+    networks:
+      - groovesheet
+    # Worker will poll the shared jobs directory
+    command: python worker_local.py
+    # Resource limits (same as original working container)
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 8G
+        reservations:
+          cpus: '2.0'
+          memory: 4G
+
+volumes:
+  shared-jobs:
+
+networks:
+  groovesheet:

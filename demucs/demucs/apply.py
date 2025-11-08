@@ -289,7 +289,12 @@ def apply_model(model: tp.Union[BagOfModels, Model],
             try:
                 chunk_out = future.result()  # type: th.Tensor
             except Exception:
-                pool.shutdown(wait=True, cancel_futures=True)
+                # cancel_futures parameter added in Python 3.9
+                import sys
+                if sys.version_info >= (3, 9):
+                    pool.shutdown(wait=True, cancel_futures=True)
+                else:
+                    pool.shutdown(wait=True)
                 raise
             chunk_length = chunk_out.shape[-1]
             out[..., offset:offset + segment_length] += (

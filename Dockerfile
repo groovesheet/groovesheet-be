@@ -47,7 +47,17 @@ RUN pip install 'numpy==1.19.5'
 # TensorFlow 2.5.0 was compiled against protobuf 3.9.2
 RUN pip install 'tensorflow==2.5.0' 'protobuf==3.9.2'
 
-# Step 5: Install remaining dependencies (excluding tensorflow and protobuf)
+# Step 4.5: Install compatible version of google-cloud-storage that works with protobuf 3.9.2
+# google-cloud-storage 1.42.3 is the last version compatible with older protobuf
+# Using older versions to maintain compatibility with TensorFlow 2.5.0's protobuf 3.9.2
+RUN pip install \
+    'google-cloud-storage==1.42.3' \
+    'google-auth<2.0' \
+    'google-api-core<2.0' \
+    'google-cloud-core<2.0' \
+    'google-resumable-media<2.0'
+
+# Step 5: Install remaining dependencies (excluding tensorflow, protobuf, and google-cloud-storage)
 RUN pip install --no-cache-dir -r /app/backend/requirements.txt
 
 # Step 6: CRITICAL - Force upgrade typing-extensions after all other packages

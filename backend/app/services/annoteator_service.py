@@ -104,17 +104,32 @@ class AnNOTEatorService:
                 logger.info("Processing audio through Demucs to isolate drums...")
                 logger.info("This step removes vocals, bass, and other instruments.")
                 logger.info("Expected time: 30-60 seconds for a 3-4 minute song")
+                logger.info("")
+                logger.info("📊 Demucs uses a bag of 4 models (htdemucs):")
+                logger.info("   Model 1/4: Starting...")
                 
                 try:
                     from inference.input_transform import drum_extraction
+                    import time
+                    import sys
                     
-                    # Use Demucs to extract drums
+                    # Force stdout flush for Docker logs
+                    sys.stdout.flush()
+                    sys.stderr.flush()
+                    
+                    start_time = time.time()
+                    
+                    # Use Demucs to extract drums (with progress=True in apply_model)
+                    logger.info("🎵 Loading and processing audio file...")
                     drum_track, sample_rate = drum_extraction(
                         audio_path,
                         dir=str(self.annoteator_path / "inference" / "pretrained_models" / "demucs"),
                         kernel='demucs',
                         mode='performance'
                     )
+                    
+                    elapsed = time.time() - start_time
+                    logger.info(f"✅ Demucs processing completed in {elapsed:.1f} seconds")
                     
                     # Save Demucs output for inspection
                     demucs_output_path = self.output_dir / f"{output_name}_demucs_drums.wav"
@@ -143,11 +158,15 @@ class AnNOTEatorService:
             logger.info("")
             logger.info("STEP 2/4: AUDIO PREPROCESSING")
             logger.info("-" * 70)
-            logger.info("Converting audio to frame-based representation...")
-            logger.info("Detecting tempo (BPM)...")
+            logger.info("🎼 Converting audio to frame-based representation...")
+            logger.info("🎵 Detecting tempo (BPM)...")
             
+            import time
+            start_time = time.time()
             df, bpm = drum_to_frame(drum_track, sample_rate)
-            logger.info(f"[OK] Preprocessing complete!")
+            elapsed = time.time() - start_time
+            
+            logger.info(f"✅ Preprocessing complete in {elapsed:.1f} seconds!")
             logger.info(f"  - Detected BPM: {bpm:.2f}")
             logger.info(f"  - Total frames: {len(df):,}")
             
@@ -155,21 +174,26 @@ class AnNOTEatorService:
             logger.info("")
             logger.info("STEP 3/4: NEURAL NETWORK PREDICTION")
             logger.info("-" * 70)
-            logger.info(f"Running AnNOTEator model: {self.model_path.name}")
-            logger.info("Predicting drum hits for each instrument...")
+            logger.info(f"🧠 Loading AnNOTEator model: {self.model_path.name}")
+            logger.info("🥁 Predicting drum hits for each instrument...")
+            logger.info("   (Kick, Snare, Hi-Hat, Toms, Ride, Crash)")
             logger.info("Expected time: 10-30 seconds")
             
+            start_time = time.time()
             prediction_df = predict_drumhit(str(self.model_path), df, sample_rate)
-            logger.info(f"[OK] Predictions complete!")
+            elapsed = time.time() - start_time
+            
+            logger.info(f"✅ Predictions complete in {elapsed:.1f} seconds!")
             logger.info(f"  - Prediction frames: {len(prediction_df):,}")
             
             # Step 4: Generate sheet music
             logger.info("")
             logger.info("STEP 4/4: MUSIC NOTATION GENERATION")
             logger.info("-" * 70)
-            logger.info("Constructing drum sheet music...")
-            logger.info("Quantizing rhythms and organizing measures...")
+            logger.info("📝 Constructing drum sheet music...")
+            logger.info("🎶 Quantizing rhythms and organizing measures...")
             
+            start_time = time.time()
             sheet_music = drum_transcriber(
                 prediction_df, 
                 song_duration, 
@@ -177,8 +201,9 @@ class AnNOTEatorService:
                 sample_rate, 
                 song_title=song_title
             )
+            elapsed = time.time() - start_time
             
-            logger.info(f"[OK] Sheet music constructed!")
+            logger.info(f"✅ Sheet music constructed in {elapsed:.1f} seconds!")
             
             # Step 5: Save to MusicXML
             logger.info(f"Saving to MusicXML format: {output_musicxml}")

@@ -1,0 +1,13 @@
+# FastAPI and web server
+fastapi==0.119.0
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Cloud Storage - no protobuf conflicts!
+google-cloud-storage>=2.10.0
+google-cloud-pubsub>=2.18.0
+
+# Utilities
+python-jose[cryptography]>=3.3.0
