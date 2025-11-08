@@ -80,10 +80,15 @@ def process_job(job_dir: str):
             logger.error(f"Transcription failed with error: {transcribe_error}", exc_info=True)
             raise
         
-        # Copy result to output path
+        # Copy result to output path (only if different)
         if result_path and os.path.exists(result_path):
             import shutil
-            shutil.copy(result_path, output_path)
+            # Only copy if source and destination are different files
+            if os.path.abspath(result_path) != os.path.abspath(output_path):
+                shutil.copy(result_path, output_path)
+                logger.info(f"Copied result from {result_path} to {output_path}")
+            else:
+                logger.info(f"Result already at correct location: {output_path}")
             
             # Update status to completed
             metadata['status'] = 'completed'

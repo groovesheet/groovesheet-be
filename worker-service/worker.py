@@ -111,8 +111,40 @@ def callback(message: pubsub_v1.subscriber.message.Message) -> None:
         message.nack()
 
 
+def health_check_server():
+    """Simple HTTP server for Cloud Run health checks"""
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+    
+    class HealthHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path == '/health' or self.path == '/':
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(b'{"status":"healthy","service":"worker"}')
+            else:
+                self.send_response(404)
+                self.end_headers()
+        
+        def log_message(self, format, *args):
+            # Suppress default logging
+            pass
+    
+    port = int(os.getenv("PORT", "8080"))
+    server = HTTPServer(('0.0.0.0', port), HealthHandler)
+    logger.info(f"Health check server listening on port {port}")
+    server.serve_forever()
+
+
 def main():
     """Main worker loop"""
+    import threading
+    
+    # Start health check server in background thread (required for Cloud Run)
+    health_thread = threading.Thread(target=health_check_server, daemon=True)
+    health_thread.start()
+    logger.info("Health check server started")
+    
     logger.info(f"Worker starting, listening to {subscription_path}")
     
     streaming_pull_future = subscriber.subscribe(subscription_path, callback=callback)

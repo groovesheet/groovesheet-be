@@ -9,9 +9,10 @@ from pathlib import Path
 
 # Get the script directory and set up paths
 script_dir = Path(__file__).parent.absolute()
-backend_dir = script_dir / "backend"
-annoteator_dir = script_dir / "AnNOTEator"
-demucs_dir = script_dir / "demucs"
+project_root = script_dir.parent  # Go up one level to groovesheet-be/
+backend_dir = project_root / "backend"
+annoteator_dir = project_root / "AnNOTEator"
+demucs_dir = project_root / "demucs"
 
 # Add paths (same as worker)
 sys.path.insert(0, str(backend_dir))
@@ -87,7 +88,7 @@ def test_processing(audio_file: str, output_dir: str = "./test_output"):
 
 if __name__ == "__main__":
     # Test with your audio file - update this path as needed
-    test_audio = script_dir / "Nirvana - Smells Like Teen Spirit (Official Music Video).mp3"
+    test_audio = project_root / "Nirvana - Smells Like Teen Spirit (Official Music Video).mp3"
     
     # Alternative: use command line argument
     if len(sys.argv) > 1:

@@ -29,15 +29,10 @@ services:
       - groovesheet
     # Worker will poll the shared jobs directory
     command: python worker_local.py
-    # Resource limits (same as original working container)
-    deploy:
-      resources:
-        limits:
-          cpus: '4.0'
-          memory: 8G
-        reservations:
-          cpus: '2.0'
-          memory: 4G
+    # Resource limits - Using maximum available Docker memory
+    # Remove all memory limits to use all available Docker memory (18.4GB)
+    cpus: 4.0
+    shm_size: 4g
 
 volumes:
   shared-jobs:

@@ -120,12 +120,14 @@ class AnNOTEatorService:
                     start_time = time.time()
                     
                     # Use Demucs to extract drums (with progress=True in apply_model)
+                    # Using 'speed' mode (1 model) instead of 'performance' (4 models) to reduce memory usage
+                    # Performance mode requires 16GB+ RAM, speed mode needs only 4GB
                     logger.info("🎵 Loading and processing audio file...")
                     drum_track, sample_rate = drum_extraction(
                         audio_path,
                         dir=str(self.annoteator_path / "inference" / "pretrained_models" / "demucs"),
                         kernel='demucs',
-                        mode='performance'
+                        mode='speed'
                     )
                     
                     elapsed = time.time() - start_time

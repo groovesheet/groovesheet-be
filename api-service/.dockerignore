@@ -1,0 +1,29 @@
+# Ignore heavy ML dependencies
+AnNOTEator/
+demucs/
+omnizart/
+backend/
+worker-service/
+
+# Ignore local files
+shared-jobs/
+uploads/
+temp/
+logs/
+*.mp3
+*.wav
+*.musicxml
+
+# Ignore cache
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# Ignore git
+.git/
+.gitignore
+
+# Ignore docs
+*.md
+docs/
