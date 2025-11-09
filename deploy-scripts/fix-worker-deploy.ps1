@@ -63,13 +63,15 @@ gcloud run deploy groovesheet-worker `
   --platform managed `
   --region $REGION `
   --memory 32Gi `
-  --cpu 8 `
+  --cpu 4 `
   --timeout 3600 `
   --concurrency 1 `
   --min-instances 0 `
   --max-instances 3 `
   --no-allow-unauthenticated `
-  --set-env-vars "USE_CLOUD_STORAGE=true,GCS_BUCKET_NAME=groovesheet-jobs,WORKER_SUBSCRIPTION=groovesheet-worker-tasks-sub,GCP_PROJECT=$PROJECT_ID,PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python,LOG_LEVEL=INFO,DEMUCS_DEVICE=cpu,TF_CPP_MIN_LOG_LEVEL=3,OMP_NUM_THREADS=8" `
+  --no-cpu-throttling `
+  --execution-environment gen2 `
+  --set-env-vars "USE_CLOUD_STORAGE=true,GCS_BUCKET_NAME=groovesheet-jobs,WORKER_SUBSCRIPTION=groovesheet-worker-tasks-sub,GCP_PROJECT=$PROJECT_ID,PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python,LOG_LEVEL=INFO,DEMUCS_DEVICE=cpu,TF_CPP_MIN_LOG_LEVEL=3,OMP_NUM_THREADS=4,PORT=8080" `
   --project=$PROJECT_ID
 
 if ($LASTEXITCODE -eq 0) {

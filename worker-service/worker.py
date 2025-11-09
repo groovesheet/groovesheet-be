@@ -8,6 +8,7 @@ import threading
 import time
 import logging
 import sys
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
 # Force unbuffered output
 sys.stdout.reconfigure(line_buffering=True) if hasattr(sys.stdout, 'reconfigure') else None
@@ -20,6 +21,32 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()]
 )
 logger = logging.getLogger(__name__)
+
+
+class HealthCheckHandler(BaseHTTPRequestHandler):
+    """Simple HTTP health check endpoint for Cloud Run"""
+    def do_GET(self):
+        if self.path == '/health' or self.path == '/':
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(b'OK')
+        else:
+            self.send_response(404)
+            self.end_headers()
+    
+    def log_message(self, format, *args):
+        # Suppress HTTP logs
+        pass
+
+
+def start_health_server():
+    """Start HTTP server for Cloud Run health checks"""
+    port = int(os.getenv('PORT', '8080'))
+    server = HTTPServer(('0.0.0.0', port), HealthCheckHandler)
+    logger.info(f"Health check server listening on port {port}")
+    server.serve_forever()
+
 
 # Import processing modules
 sys.path.append('/app/backend')
@@ -157,6 +184,13 @@ def process_job_local(job_dir: str):
 
 
 if __name__ == "__main__":
+    # Start health check server in background thread (Cloud Run requirement)
+    if USE_CLOUD_STORAGE:
+        health_thread = threading.Thread(target=start_health_server, daemon=True)
+        health_thread.start()
+        time.sleep(1)  # Let health server start
+    
+    # Run worker loop
     if USE_CLOUD_STORAGE:
         # Cloud mode: Subscribe to Pub/Sub
         def callback(message):
