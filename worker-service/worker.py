@@ -184,11 +184,29 @@ def process_job_local(job_dir: str):
 
 
 if __name__ == "__main__":
-    # Start health check server in background thread (Cloud Run requirement)
+    # Start health check server FIRST (Cloud Run requirement)
+    # Must be running before Cloud Run considers the container healthy
     if USE_CLOUD_STORAGE:
+        logger.info("Starting health check server for Cloud Run...")
         health_thread = threading.Thread(target=start_health_server, daemon=True)
         health_thread.start()
-        time.sleep(1)  # Let health server start
+        
+        # Wait for health server to actually start
+        import socket
+        port = int(os.getenv('PORT', '8080'))
+        max_retries = 10
+        for i in range(max_retries):
+            try:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.connect(('127.0.0.1', port))
+                sock.close()
+                logger.info(f"✓ Health server is listening on port {port}")
+                break
+            except:
+                if i == max_retries - 1:
+                    logger.error(f"Health server failed to start on port {port}")
+                    raise
+                time.sleep(0.5)
     
     # Run worker loop
     if USE_CLOUD_STORAGE:
