@@ -123,12 +123,20 @@ class AnNOTEatorService:
                     # Using 'speed' mode (1 model) instead of 'performance' (4 models) to reduce memory usage
                     # Performance mode requires 16GB+ RAM, speed mode needs only 4GB
                     logger.info("🎵 Loading and processing audio file...")
+                    logger.info("⏳ Calling drum_extraction (this may take 1-2 minutes)...")
+                    sys.stdout.flush()
+                    sys.stderr.flush()
+                    
                     drum_track, sample_rate = drum_extraction(
                         audio_path,
                         dir=str(self.annoteator_path / "inference" / "pretrained_models" / "demucs"),
                         kernel='demucs',
                         mode='speed'
                     )
+                    
+                    logger.info("✅ drum_extraction returned successfully")
+                    sys.stdout.flush()
+                    sys.stderr.flush()
                     
                     elapsed = time.time() - start_time
                     logger.info(f"✅ Demucs processing completed in {elapsed:.1f} seconds")
@@ -162,6 +170,8 @@ class AnNOTEatorService:
             logger.info("-" * 70)
             logger.info("🎼 Converting audio to frame-based representation...")
             logger.info("🎵 Detecting tempo (BPM)...")
+            sys.stdout.flush()
+            sys.stderr.flush()
             
             import time
             start_time = time.time()
@@ -171,6 +181,8 @@ class AnNOTEatorService:
             logger.info(f"✅ Preprocessing complete in {elapsed:.1f} seconds!")
             logger.info(f"  - Detected BPM: {bpm:.2f}")
             logger.info(f"  - Total frames: {len(df):,}")
+            sys.stdout.flush()
+            sys.stderr.flush()
             
             # Step 3: Predict drum hits
             logger.info("")
@@ -180,6 +192,8 @@ class AnNOTEatorService:
             logger.info("🥁 Predicting drum hits for each instrument...")
             logger.info("   (Kick, Snare, Hi-Hat, Toms, Ride, Crash)")
             logger.info("Expected time: 10-30 seconds")
+            sys.stdout.flush()
+            sys.stderr.flush()
             
             start_time = time.time()
             prediction_df = predict_drumhit(str(self.model_path), df, sample_rate)
@@ -187,6 +201,8 @@ class AnNOTEatorService:
             
             logger.info(f"✅ Predictions complete in {elapsed:.1f} seconds!")
             logger.info(f"  - Prediction frames: {len(prediction_df):,}")
+            sys.stdout.flush()
+            sys.stderr.flush()
             
             # Step 4: Generate sheet music
             logger.info("")
@@ -194,6 +210,8 @@ class AnNOTEatorService:
             logger.info("-" * 70)
             logger.info("📝 Constructing drum sheet music...")
             logger.info("🎶 Quantizing rhythms and organizing measures...")
+            sys.stdout.flush()
+            sys.stderr.flush()
             
             start_time = time.time()
             sheet_music = drum_transcriber(
@@ -206,14 +224,22 @@ class AnNOTEatorService:
             elapsed = time.time() - start_time
             
             logger.info(f"✅ Sheet music constructed in {elapsed:.1f} seconds!")
+            sys.stdout.flush()
+            sys.stderr.flush()
             
             # Step 5: Save to MusicXML
             logger.info(f"Saving to MusicXML format: {output_musicxml}")
             sheet_music.sheet.write(fp=str(output_musicxml))
+            logger.info("✅ MusicXML file saved")
+            sys.stdout.flush()
+            sys.stderr.flush()
             
             # Step 6: Fix percussion setup
             logger.info("Applying percussion clef fix for MuseScore...")
             self._fix_percussion_setup(str(output_musicxml))
+            logger.info("✅ Percussion setup fixed")
+            sys.stdout.flush()
+            sys.stderr.flush()
             
             # Extract metadata
             metadata = self._extract_metadata(prediction_df, bpm, song_duration)

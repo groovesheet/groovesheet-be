@@ -12,7 +12,7 @@ gcloud run deploy groovesheet-worker `
   --cpu 4 `
   --timeout 3600 `
   --concurrency 1 `
-  --min-instances 0 `
+  --min-instances 1 `
   --max-instances 3 `
   --no-allow-unauthenticated `
   --set-env-vars "USE_CLOUD_STORAGE=true,GCS_BUCKET_NAME=groovesheet-jobs,PUBSUB_SUBSCRIPTION=groovesheet-worker-tasks-sub,GCP_PROJECT=groovesheet2025,PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python,LOG_LEVEL=INFO,DEMUCS_DEVICE=cpu,TF_CPP_MIN_LOG_LEVEL=3" `
