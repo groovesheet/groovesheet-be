@@ -67,18 +67,43 @@ class AnNOTEatorService:
         Returns:
             Tuple of (musicxml_path, metadata)
         """
+        logger.info("=" * 70)
+        logger.info("ENTERED transcribe_audio() method")
+        logger.info("=" * 70)
+        sys.stdout.flush()
+        sys.stderr.flush()
+        
         # Import here to avoid pytube import issues
+        logger.info("Importing librosa...")
+        sys.stdout.flush()
         import librosa
+        logger.info("✓ librosa imported")
+        sys.stdout.flush()
+        
+        logger.info("Importing pandas...")
+        sys.stdout.flush()
         import pandas as pd
+        logger.info("✓ pandas imported")
+        sys.stdout.flush()
+        
+        logger.info("Importing soundfile...")
+        sys.stdout.flush()
         import soundfile as sf
+        logger.info("✓ soundfile imported")
+        sys.stdout.flush()
         
         # Import these after fixing the pytube issue
+        logger.info("Importing AnNOTEator inference modules...")
+        sys.stdout.flush()
         try:
             from inference.input_transform import drum_to_frame
             from inference.prediction import predict_drumhit
             from inference.transcriber import drum_transcriber
+            logger.info("✓ AnNOTEator modules imported successfully")
+            sys.stdout.flush()
         except ImportError as e:
             logger.error(f"Failed to import AnNOTEator modules: {e}")
+            sys.stdout.flush()
             raise ImportError(f"AnNOTEator dependencies not available: {e}")
         
         # Generate output filename
