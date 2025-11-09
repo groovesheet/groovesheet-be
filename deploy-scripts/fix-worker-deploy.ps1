@@ -50,11 +50,12 @@ Write-Host ""
 
 Write-Host "Step 3: Deploying worker to Cloud Run..." -ForegroundColor Yellow
 Write-Host ""
-Write-Host "⚙️  Configuration:" -ForegroundColor Cyan
+Write-Host "⚙️  Configuration (STABLE v1.0 - tested locally):" -ForegroundColor Cyan
 Write-Host "   Memory: 32GB" -ForegroundColor White
 Write-Host "   CPU: 8 cores" -ForegroundColor White
 Write-Host "   Timeout: 3600s (1 hour)" -ForegroundColor White
 Write-Host "   Concurrency: 1 (one job at a time)" -ForegroundColor White
+Write-Host "   Git Tag: worker-v1.0-stable" -ForegroundColor White
 Write-Host ""
 
 gcloud run deploy groovesheet-worker `
@@ -68,7 +69,7 @@ gcloud run deploy groovesheet-worker `
   --min-instances 0 `
   --max-instances 3 `
   --no-allow-unauthenticated `
-  --set-env-vars "USE_CLOUD_STORAGE=true,GCS_BUCKET_NAME=groovesheet-jobs,WORKER_SUBSCRIPTION=groovesheet-worker-tasks-sub,GCP_PROJECT=$PROJECT_ID,PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python,LOG_LEVEL=INFO,DEMUCS_DEVICE=cpu,TF_CPP_MIN_LOG_LEVEL=3" `
+  --set-env-vars "USE_CLOUD_STORAGE=true,GCS_BUCKET_NAME=groovesheet-jobs,WORKER_SUBSCRIPTION=groovesheet-worker-tasks-sub,GCP_PROJECT=$PROJECT_ID,PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python,LOG_LEVEL=INFO,DEMUCS_DEVICE=cpu,TF_CPP_MIN_LOG_LEVEL=3,OMP_NUM_THREADS=8" `
   --project=$PROJECT_ID
 
 if ($LASTEXITCODE -eq 0) {
@@ -81,8 +82,9 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "  • Fixed Pub/Sub ack deadline handling" -ForegroundColor White
     Write-Host "  • Auto-extends ack deadline during long processing" -ForegroundColor White
     Write-Host "  • Prevents duplicate message delivery" -ForegroundColor White
-    Write-Host "  • Increased resources: 32GB RAM, 8 CPU cores" -ForegroundColor White
+    Write-Host "  • Increased resources: 32GB RAM, 4 CPU cores (tested locally)" -ForegroundColor White
     Write-Host "  • Fixed metadata.json error handling" -ForegroundColor White
+    Write-Host "  • Added aggressive stdout/stderr flushing for real-time logs" -ForegroundColor White
     Write-Host ""
     Write-Host "The worker now handles long transcription jobs properly." -ForegroundColor White
     Write-Host ""

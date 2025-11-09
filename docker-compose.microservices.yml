@@ -28,19 +28,25 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
       # Fix protobuf version mismatch (TensorFlow 2.5.0 needs this)
       - PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+      - TF_CPP_MIN_LOG_LEVEL=3
+      - DEMUCS_DEVICE=cpu
+      - OMP_NUM_THREADS=4
+      - LOG_LEVEL=INFO
     volumes:
       - ./credentials.json:/app/credentials.json:ro
     depends_on:
       - pubsub-emulator
-    # Resource limits for ML workload (same as original working container)
+    # STABLE v1.0 Resource Configuration (tested locally with 32GB, deployed with 32GB)
+    # Cloud Run Production: 32GB RAM, 4 CPU cores, 3600s timeout
+    # Local Docker: Use same settings for accurate testing
     deploy:
       resources:
         limits:
           cpus: '4.0'
-          memory: 8G
+          memory: 32G
         reservations:
-          cpus: '2.0'
-          memory: 4G
+          cpus: '4.0'
+          memory: 32G
 
   # For local testing, use Pub/Sub emulator
   pubsub-emulator:
