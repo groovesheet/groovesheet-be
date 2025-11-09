@@ -120,14 +120,16 @@ def process_job(job_id: str, bucket_name: str):
                 song_title = 'Drum Transcription'
             
             logger.info(f"Starting transcription for job {job_id}")
-            logger.info(f"  Input path: {input_path}")
-            logger.info(f"  Output dir: {temp_dir}")
+            logger.info(f"  Input file: {input_path}")
+            logger.info(f"  Output directory: {temp_dir}")
             logger.info(f"  Song title: {song_title}")
             logger.info(f"  File exists: {os.path.exists(input_path)}")
             logger.info(f"  File size: {os.path.getsize(input_path) if os.path.exists(input_path) else 'N/A'} bytes")
             sys.stdout.flush()
             sys.stderr.flush()
             
+            update_job_status(bucket, job_id, "processing", 30)
+            logger.info("Progress: 30%")
             logger.info("ABOUT TO CALL annoteator.transcribe_audio()...")
             sys.stdout.flush()
             sys.stderr.flush()
