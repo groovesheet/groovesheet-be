@@ -38,9 +38,8 @@ COPY backend /app/backend
 # Install demucs from local copy
 RUN cd /app/demucs && pip install -e .
 
-# Copy worker code
+# Copy unified worker code
 COPY worker-service/worker.py .
-COPY worker-service/worker_local.py .
 
 # Set PYTHONPATH to include all modules (matching monolith)
 ENV PYTHONPATH=/app:/app/backend:/app/AnNOTEator:/app/demucs:/app/omnizart:$PYTHONPATH
