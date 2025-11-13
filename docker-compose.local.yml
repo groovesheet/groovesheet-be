@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./api-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - USE_CLOUD_STORAGE=false
+      - GCS_BUCKET_NAME=groovesheet-jobs
+      - GCP_PROJECT=groovesheet2025
+      - WORKER_TOPIC=groovesheet-worker-tasks
+      - LOCAL_JOBS_DIR=/app/jobs
+    volumes:
+      - ./shared-jobs:/app/jobs
+    depends_on:
+      - pubsub-emulator
+
+  worker:
+    build:
+      context: .
+      dockerfile: worker-service/Dockerfile
+    environment:
+      - USE_CLOUD_STORAGE=false
+      - LOCAL_JOBS_DIR=/app/jobs
+      - GCS_BUCKET_NAME=groovesheet-jobs
+      - GCP_PROJECT=groovesheet2025
+      - WORKER_SUBSCRIPTION=groovesheet-worker-tasks-sub
+      # Fix protobuf version mismatch (TensorFlow 2.5.0 needs this)
+      - PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+      - TF_CPP_MIN_LOG_LEVEL=3
+      - DEMUCS_DEVICE=cpu
+      - DEMUCS_NUM_WORKERS=1
+      - OMP_NUM_THREADS=4
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./shared-jobs:/app/jobs
+    depends_on:
+      - pubsub-emulator
+    # STABLE v1.0 Resource Configuration (tested locally with 32GB, deployed with 32GB)
+    # Cloud Run Production: 32GB RAM, 4 CPU cores, 3600s timeout
+    # Local Docker: Use same settings for accurate testing
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 32G
+        reservations:
+          cpus: '4.0'
+          memory: 32G
+
+  # For local testing, use Pub/Sub emulator
+  pubsub-emulator:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    command: gcloud beta emulators pubsub start --host-port=0.0.0.0:8085
+    ports:
+      - "8085:8085"

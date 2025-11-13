@@ -27,7 +27,7 @@ app.add_middleware(
 USE_CLOUD = os.getenv("USE_CLOUD_STORAGE", "true").lower() == "true"
 BUCKET_NAME = os.getenv("GCS_BUCKET_NAME", "groovesheet-jobs")
 WORKER_TOPIC = os.getenv("WORKER_TOPIC", "groovesheet-worker-tasks")
-LOCAL_JOBS_DIR = "./jobs"
+LOCAL_JOBS_DIR = os.getenv("LOCAL_JOBS_DIR", "/app/jobs")
 
 storage_client = None
 bucket = None

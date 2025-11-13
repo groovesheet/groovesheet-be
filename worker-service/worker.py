@@ -59,7 +59,8 @@ def start_health_server():
 
 
 # Import processing modules
-from annoteator_service import AnNOTEatorService
+sys.path.append('/app/backend')
+from app.services.annoteator_service import AnNOTEatorService
 
 # Determine mode
 USE_CLOUD_STORAGE = os.getenv("USE_CLOUD_STORAGE", "true").lower() == "true"
@@ -115,35 +116,15 @@ def process_job_cloud(job_id: str, bucket_name: str):
         logger.info(f"  File size: {os.path.getsize(input_path)} bytes")
         sys.stdout.flush()
         
-        # Initial progress update so API polls reflect activity
         logger.info("Progress: 30%")
-        try:
-            metadata['progress'] = 30
-            metadata_blob.upload_from_string(json.dumps(metadata), content_type="application/json")
-        except Exception as _:
-            pass
         logger.info("ABOUT TO CALL annoteator.transcribe_audio()...")
         sys.stdout.flush()
         
-        def progress_cb(pct:int, message:str):
-            # Clamp and write incremental updates (avoid flooding: only if +>=3% or milestone)
-            last = metadata.get('_last_progress', 0)
-            if pct - last < 3 and pct not in (35,55,65,80,90,95,97,100):
-                return
-            metadata['_last_progress'] = pct
-            metadata['progress'] = pct
-            metadata['status'] = 'processing' if pct < 100 else 'completed'
-            metadata['last_progress_message'] = message
-            try:
-                metadata_blob.upload_from_string(json.dumps({k:v for k,v in metadata.items() if not k.startswith('_')}), content_type="application/json")
-            except Exception as _:
-                pass
         result_path, result_metadata = annoteator.transcribe_audio(
             audio_path=str(input_path),
             output_name="output",
             song_title=song_title,
-            use_demucs=True,
-            progress_callback=progress_cb
+            use_demucs=True
         )
         
         logger.info("annoteator.transcribe_audio() returned successfully!")
@@ -152,27 +133,11 @@ def process_job_cloud(job_id: str, bucket_name: str):
         # Upload result
         result_blob = bucket.blob(f"jobs/{job_id}/output.musicxml")
         result_blob.upload_from_filename(result_path)
-        # Update progress to 90% after upload completes/write metadata shortly after
-        try:
-            metadata['progress'] = 90
-            metadata_blob.upload_from_string(json.dumps(metadata), content_type="application/json")
-        except Exception as _:
-            pass
         
         # Update metadata
         metadata['status'] = 'completed'
         metadata['progress'] = 100
-        metadata['last_progress_message'] = 'Transcription complete'
-        # Attach result pointers and optional stats
-        metadata['result_path'] = f"jobs/{job_id}/output.musicxml"
-        metadata['result_gcs_uri'] = f"gs://{bucket_name}/jobs/{job_id}/output.musicxml"
-        if isinstance(result_metadata, dict):
-            # include a few light fields only
-            for k in ('total_notes', 'bpm', 'duration_seconds'):
-                if k in result_metadata:
-                    metadata[k] = result_metadata[k]
-        metadata_clean = {k: v for k, v in metadata.items() if not k.startswith('_')}
-        metadata_blob.upload_from_string(json.dumps(metadata_clean), content_type="application/json")
+        metadata_blob.upload_from_string(json.dumps(metadata), content_type="application/json")
         
         logger.info(f"Job {job_id} completed successfully")
 
@@ -222,25 +187,11 @@ def process_job_local(job_dir: str):
     logger.info("ABOUT TO CALL annoteator.transcribe_audio()...")
     sys.stdout.flush()
     
-    def progress_cb(pct:int, message:str):
-        last = metadata.get('_last_progress', 0)
-        if pct - last < 3 and pct not in (35,55,65,80,90,95,97,100):
-            return
-        metadata['_last_progress'] = pct
-        metadata['progress'] = pct
-        metadata['status'] = 'processing' if pct < 100 else 'completed'
-        metadata['last_progress_message'] = message
-        try:
-            with open(metadata_path, 'w') as f:
-                json.dump({k:v for k,v in metadata.items() if not k.startswith('_')}, f)
-        except Exception:
-            pass
     result_path, result_metadata = annoteator.transcribe_audio(
         audio_path=input_path,
         output_name="output",
         song_title=metadata.get('filename', 'Drum Transcription'),
-        use_demucs=True,
-        progress_callback=progress_cb
+        use_demucs=True
     )
     
     logger.info(f"annoteator.transcribe_audio() returned: {result_path}")
@@ -248,7 +199,6 @@ def process_job_local(job_dir: str):
     
     metadata['status'] = 'completed'
     metadata['progress'] = 100
-    metadata['last_progress_message'] = 'Transcription complete'
     with open(metadata_path, 'w') as f:
         json.dump(metadata, f)
     

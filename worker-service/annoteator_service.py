@@ -12,7 +12,7 @@ from typing import Optional, Tuple, Dict
 import warnings
 
 # Add AnNOTEator to path
-ANNOTEATOR_PATH = Path(__file__).parent.parent / "AnNOTEator"
+ANNOTEATOR_PATH = Path(__file__).parent / "AnNOTEator"
 sys.path.insert(0, str(ANNOTEATOR_PATH))
 
 # Suppress warnings
