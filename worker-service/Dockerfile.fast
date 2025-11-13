@@ -31,13 +31,13 @@ COPY demucs /app/demucs
 # Install demucs (cached unless demucs changes)
 RUN cd /app/demucs && pip install -e .
 
-# Copy DYNAMIC code LAST (backend and worker change frequently)
+# Copy DYNAMIC code LAST (worker changes frequently)
 # This way, code changes only rebuild these layers (~2 seconds instead of 5 minutes)
-COPY backend /app/backend
 COPY worker-service/worker.py .
+COPY worker-service/annoteator_service.py .
 
 # Environment variables
-ENV PYTHONPATH=/app:/app/backend:/app/AnNOTEator:/app/demucs:/app/omnizart:$PYTHONPATH
+ENV PYTHONPATH=/app:/app/AnNOTEator:/app/demucs:$PYTHONPATH
 ENV PYTHONUNBUFFERED=1
 ENV PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
 

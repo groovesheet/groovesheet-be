@@ -59,8 +59,7 @@ def start_health_server():
 
 
 # Import processing modules
-sys.path.append('/app/backend')
-from app.services.annoteator_service import AnNOTEatorService
+from annoteator_service import AnNOTEatorService
 
 # Determine mode
 USE_CLOUD_STORAGE = os.getenv("USE_CLOUD_STORAGE", "true").lower() == "true"

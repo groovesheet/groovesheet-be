@@ -60,27 +60,13 @@ venv.bak/
 .DS_Store
 Thumbs.db
 
-# Project specific
-backend/uploads/*
-!backend/uploads/.gitkeep
-backend/temp/*
-!backend/temp/.gitkeep
-backend/outputs/*
-!backend/outputs/.gitkeep
-backend/models/*
-!backend/models/.gitkeep
-backend/logs/*
-!backend/logs/.gitkeep
+# Project specific - shared job storage
+shared-jobs/*/audio.* 
+shared-jobs/*/output.*
 
-# Output directories
+# Generated output directories
 outputs/
-test_output/
-test_comparison_output/
-test_omnizart_8class_output/
 test_results/
-logs/
-temp/
-uploads/
 
 # Training data (too large for git)
 training_data/
@@ -124,8 +110,9 @@ models/omnizart_checkpoints/
 .dmypy.json
 dmypy.json
 
-# Virtual environments (specific names in your project)
-venv38/
+# Virtual environments
+venv*/
+.venv/
 
 # Gradle (for midi2musicxml)
 .gradle/

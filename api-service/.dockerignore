@@ -1,15 +1,10 @@
-# Ignore heavy ML dependencies
+# Ignore heavy ML dependencies (not needed in API service)
 AnNOTEator/
 demucs/
-omnizart/
-backend/
 worker-service/
 
-# Ignore local files
+# Ignore local files  
 shared-jobs/
-uploads/
-temp/
-logs/
 *.mp3
 *.wav
 *.musicxml

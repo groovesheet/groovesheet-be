@@ -19,8 +19,8 @@ services:
 
   worker:
     build:
-      context: ./worker-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: worker-service/Dockerfile
     environment:
       - GCS_BUCKET_NAME=groovesheet-jobs
       - GCP_PROJECT=groovesheet2025
@@ -30,6 +30,7 @@ services:
       - PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
       - TF_CPP_MIN_LOG_LEVEL=3
       - DEMUCS_DEVICE=cpu
+      - DEMUCS_NUM_WORKERS=1
       - OMP_NUM_THREADS=4
       - LOG_LEVEL=INFO
     volumes:
