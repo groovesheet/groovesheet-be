@@ -1,17 +1,8 @@
 """
 Services package initialization
 """
-from app.services.demucs_service import DemucsService
-from app.services.omnizart_service import OmnizartService
-from app.services.sheet_music_service import SheetMusicService
-from app.services.model_manager import ModelManager
-from app.services.processing_service import ProcessingService, ProcessingJob
+from app.services.annoteator_service import AnNOTEatorService
 
 __all__ = [
-    'DemucsService',
-    'OmnizartService',
-    'SheetMusicService',
-    'ModelManager',
-    'ProcessingService',
-    'ProcessingJob'
+    'AnNOTEatorService',
 ]

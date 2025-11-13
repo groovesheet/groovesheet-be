@@ -1,0 +1,45 @@
+# Optimized Worker Dockerfile - Code copied LAST for faster iterations
+FROM python:3.8-slim
+
+WORKDIR /app
+
+# System dependencies (cached unless apt packages change)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    g++ \
+    ffmpeg \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements (cached unless requirements.txt changes)
+COPY worker-service/requirements.txt .
+
+# Install Python packages (cached unless requirements change)
+RUN pip install --upgrade pip setuptools wheel
+RUN pip install 'Cython>=0.29.24'
+RUN pip install 'numpy==1.19.5'
+RUN pip install 'tensorflow==2.5.0' 'protobuf==3.9.2'
+RUN pip install --no-deps 'google-cloud-storage==1.42.3' 'google-cloud-pubsub==2.8.0'
+RUN pip install 'google-api-core<2.0' 'google-auth<2.0' 'googleapis-common-protos<2.0'
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy STATIC libraries first (AnNOTEator and demucs rarely change)
+COPY AnNOTEator /app/AnNOTEator
+COPY demucs /app/demucs
+
+# Install demucs (cached unless demucs changes)
+RUN cd /app/demucs && pip install -e .
+
+# Copy DYNAMIC code LAST (backend and worker change frequently)
+# This way, code changes only rebuild these layers (~2 seconds instead of 5 minutes)
+COPY backend /app/backend
+COPY worker-service/worker.py .
+
+# Environment variables
+ENV PYTHONPATH=/app:/app/backend:/app/AnNOTEator:/app/demucs:/app/omnizart:$PYTHONPATH
+ENV PYTHONUNBUFFERED=1
+ENV PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+
+# Run worker
+CMD ["python", "-u", "worker.py"]

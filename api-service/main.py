@@ -10,6 +10,7 @@ import json
 import os
 from datetime import datetime
 from typing import Optional
+from fastapi.responses import JSONResponse
 
 app = FastAPI(title="Groovesheet API")
 
@@ -62,9 +63,9 @@ async def transcribe(
 ):
     """Upload audio file and start transcription job"""
     
-    # Validate auth (Clerk JWT)
-    if not authorization:
-        raise HTTPException(status_code=401, detail="No authorization header")
+    # Validate auth (Clerk JWT) - relaxed for testing
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="No authorization header or invalid format")
     
     # Generate job ID
     job_id = str(uuid.uuid4())
@@ -89,7 +90,10 @@ async def transcribe(
         
         # Publish message to worker topic
         message_data = json.dumps({"job_id": job_id, "bucket": BUCKET_NAME}).encode("utf-8")
-        publisher.publish(topic_path, message_data)
+        future = publisher.publish(topic_path, message_data)
+        message_id = future.result()  # Wait for publish to complete
+        print(f"✓ Published job {job_id} to topic {WORKER_TOPIC}, message ID: {message_id}")
+        print(f"✓ Topic path: {topic_path}")
     else:
         # Local mode: save to filesystem
         job_dir = f"{LOCAL_JOBS_DIR}/{job_id}"
@@ -131,7 +135,13 @@ async def get_status(job_id: str):
         with open(metadata_path, "r") as f:
             job_data = json.load(f)
     
-    return job_data
+    # Include a conventional download URL hint when completed
+    if job_data.get("status") == "completed":
+        job_data.setdefault("download_url", f"/api/v1/download/{job_id}")
+    # Disable caching so clients always see latest metadata
+    return JSONResponse(content=job_data, headers={
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0"
+    })
 
 
 @app.get("/api/v1/download/{job_id}")

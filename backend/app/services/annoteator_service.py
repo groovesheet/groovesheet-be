@@ -6,6 +6,7 @@ import sys
 import tempfile
 import uuid
 import logging
+import time
 from pathlib import Path
 from typing import Optional, Tuple, Dict
 import warnings
@@ -19,6 +20,16 @@ warnings.filterwarnings('ignore')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 logger = logging.getLogger(__name__)
+
+# Import heavy libraries at MODULE level (once per container startup, not per job)
+logger.info("Loading ML libraries (one-time startup cost)...")
+import librosa
+import pandas as pd
+import soundfile as sf
+from inference.input_transform import drum_to_frame, drum_extraction
+from inference.prediction import predict_drumhit
+from inference.transcriber import drum_transcriber
+logger.info("✓ All ML libraries loaded")
 
 
 class AnNOTEatorService:
@@ -49,11 +60,12 @@ class AnNOTEatorService:
             raise FileNotFoundError(f"AnNOTEator model not found at {self.model_path}")
     
     def transcribe_audio(
-        self, 
+        self,
         audio_path: str,
         output_name: Optional[str] = None,
         song_title: str = "Drum Transcription",
-        use_demucs: bool = True
+        use_demucs: bool = True,
+        progress_callback: Optional[callable] = None
     ) -> Tuple[str, Dict]:
         """
         Transcribe audio file to MusicXML using AnNOTEator
@@ -72,39 +84,6 @@ class AnNOTEatorService:
         logger.info("=" * 70)
         sys.stdout.flush()
         sys.stderr.flush()
-        
-        # Import here to avoid pytube import issues
-        logger.info("Importing librosa...")
-        sys.stdout.flush()
-        import librosa
-        logger.info("✓ librosa imported")
-        sys.stdout.flush()
-        
-        logger.info("Importing pandas...")
-        sys.stdout.flush()
-        import pandas as pd
-        logger.info("✓ pandas imported")
-        sys.stdout.flush()
-        
-        logger.info("Importing soundfile...")
-        sys.stdout.flush()
-        import soundfile as sf
-        logger.info("✓ soundfile imported")
-        sys.stdout.flush()
-        
-        # Import these after fixing the pytube issue
-        logger.info("Importing AnNOTEator inference modules...")
-        sys.stdout.flush()
-        try:
-            from inference.input_transform import drum_to_frame
-            from inference.prediction import predict_drumhit
-            from inference.transcriber import drum_transcriber
-            logger.info("✓ AnNOTEator modules imported successfully")
-            sys.stdout.flush()
-        except ImportError as e:
-            logger.error(f"Failed to import AnNOTEator modules: {e}")
-            sys.stdout.flush()
-            raise ImportError(f"AnNOTEator dependencies not available: {e}")
         
         # Generate output filename
         if not output_name:
@@ -132,12 +111,10 @@ class AnNOTEatorService:
                 logger.info("")
                 logger.info("📊 Demucs uses a bag of 4 models (htdemucs):")
                 logger.info("   Model 1/4: Starting...")
+                if progress_callback:
+                    progress_callback(35, "Starting Demucs drum separation")
                 
                 try:
-                    from inference.input_transform import drum_extraction
-                    import time
-                    import sys
-                    
                     # Force stdout flush for Docker logs
                     sys.stdout.flush()
                     sys.stderr.flush()
@@ -149,6 +126,26 @@ class AnNOTEatorService:
                     # Performance mode requires 16GB+ RAM, speed mode needs only 4GB
                     logger.info("🎵 Loading and processing audio file...")
                     logger.info("⏳ Calling drum_extraction (this may take 1-2 minutes)...")
+                    # Extra diagnostics for Cloud Run: list Demucs model files
+                    demucs_dir = self.annoteator_path / "inference" / "pretrained_models" / "demucs"
+                    if demucs_dir.exists():
+                        model_files = [p.name for p in demucs_dir.glob("*.th")]
+                        logger.info(f"Demucs model directory: {demucs_dir} contains {len(model_files)} files: {model_files}")
+                    else:
+                        logger.warning(f"Demucs model directory missing: {demucs_dir}")
+
+                    # Heartbeat thread so we know it's still working even if tqdm progress bars are suppressed in Cloud logs
+                    import threading as _threading
+                    import itertools as _itertools
+                    _stop_event = _threading.Event()
+                    def _demucs_heartbeat():
+                        for i in _itertools.count(1):
+                            if _stop_event.wait(timeout=30):  # log every 30s until finished
+                                break
+                            logger.info(f"[Demucs heartbeat] Still processing... {i*30}s elapsed")
+                            sys.stdout.flush(); sys.stderr.flush()
+                    _hb_thread = _threading.Thread(target=_demucs_heartbeat, daemon=True)
+                    _hb_thread.start()
                     sys.stdout.flush()
                     sys.stderr.flush()
                     
@@ -158,8 +155,15 @@ class AnNOTEatorService:
                         kernel='demucs',
                         mode='speed'
                     )
+                    _stop_event.set()
+                    try:
+                        _hb_thread.join(timeout=5)
+                    except Exception:
+                        pass
                     
                     logger.info("✅ drum_extraction returned successfully")
+                    if progress_callback:
+                        progress_callback(55, "Drum separation completed")
                     sys.stdout.flush()
                     sys.stderr.flush()
                     
@@ -198,7 +202,6 @@ class AnNOTEatorService:
             sys.stdout.flush()
             sys.stderr.flush()
             
-            import time
             start_time = time.time()
             df, bpm = drum_to_frame(drum_track, sample_rate)
             elapsed = time.time() - start_time
@@ -208,6 +211,8 @@ class AnNOTEatorService:
             logger.info(f"  - Total frames: {len(df):,}")
             sys.stdout.flush()
             sys.stderr.flush()
+            if progress_callback:
+                progress_callback(65, "Audio preprocessing completed")
             
             # Step 3: Predict drum hits
             logger.info("")
@@ -228,6 +233,8 @@ class AnNOTEatorService:
             logger.info(f"  - Prediction frames: {len(prediction_df):,}")
             sys.stdout.flush()
             sys.stderr.flush()
+            if progress_callback:
+                progress_callback(80, "Neural network prediction completed")
             
             # Step 4: Generate sheet music
             logger.info("")
@@ -251,6 +258,8 @@ class AnNOTEatorService:
             logger.info(f"✅ Sheet music constructed in {elapsed:.1f} seconds!")
             sys.stdout.flush()
             sys.stderr.flush()
+            if progress_callback:
+                progress_callback(90, "Sheet music constructed")
             
             # Step 5: Save to MusicXML
             logger.info(f"Saving to MusicXML format: {output_musicxml}")
@@ -258,6 +267,8 @@ class AnNOTEatorService:
             logger.info("✅ MusicXML file saved")
             sys.stdout.flush()
             sys.stderr.flush()
+            if progress_callback:
+                progress_callback(95, "MusicXML saved")
             
             # Step 6: Fix percussion setup
             logger.info("Applying percussion clef fix for MuseScore...")
@@ -265,6 +276,8 @@ class AnNOTEatorService:
             logger.info("✅ Percussion setup fixed")
             sys.stdout.flush()
             sys.stderr.flush()
+            if progress_callback:
+                progress_callback(97, "Percussion clef fix applied")
             
             # Extract metadata
             metadata = self._extract_metadata(prediction_df, bpm, song_duration)
@@ -283,6 +296,8 @@ class AnNOTEatorService:
             logger.info(f"Duration: {metadata.get('duration_seconds', 0):.2f} seconds")
             logger.info("=" * 70)
             
+            if progress_callback:
+                progress_callback(100, "Transcription complete")
             return str(output_musicxml), metadata
             
         except Exception as e:
@@ -376,7 +391,6 @@ class AnNOTEatorService:
     
     def cleanup_old_files(self, max_age_hours: int = 24):
         """Clean up temporary files older than max_age_hours"""
-        import time
         current_time = time.time()
         
         cleaned_count = 0

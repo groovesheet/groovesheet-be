@@ -7,7 +7,12 @@ except ImportError:
 import numpy as np
 from pathlib import Path
 import multiprocessing
+import os
+import logging
 from pedalboard import Pedalboard, Compressor
+
+# Add lightweight logger (container-wide logging config already set in worker)
+logger = logging.getLogger("annoteator.input_transform")
 
 def drum_extraction(path, dir=None, kernel='demucs', mode='performance', drum_start=None, drum_end=None):
     """
@@ -71,14 +76,14 @@ def drum_extraction(path, dir=None, kernel='demucs', mode='performance', drum_st
         if mode =='speed':
             model=pretrained.get_model(name='83fc094f', repo=Path(dir_path))
             model=apply.BagOfModels([model])
-            print('The precessing time could take 1-2 mins.')
+            logger.info('Demucs speed mode: processing time typically 1-2 mins.')
         elif mode =='performance':
             model_1=pretrained.get_model(name='14fc6a69', repo=Path(dir_path))
             model_2=pretrained.get_model(name='464b36d7', repo=Path(dir_path))
             model_3=pretrained.get_model(name='7fd6ef75', repo=Path(dir_path))
             model_4=pretrained.get_model(name='83fc094f', repo=Path(dir_path))
             model=apply.BagOfModels([model_1,model_2,model_3,model_4])
-            print('The demucs kernel is a bag of 4 models. The track will be processed 4 times and output the best one. You will see 4 progress bars per track. The total processing time could take 4-6 mins depends on total Audio length')
+            logger.info('Demucs performance mode: bag of 4 models, expect 4 progress bars (4-6 mins).')
         wav=audio.AudioFile(path).read(
             streams=0,
             samplerate=model.samplerate,
@@ -90,6 +95,17 @@ def drum_extraction(path, dir=None, kernel='demucs', mode='performance', drum_st
         #The task will use all your available CPU cores by default. Although it is possible to accelerate by using GPU, this is currently not implemented yet.
         ref = wav.mean(0)
         wav = (wav - ref.mean()) / ref.std()
+        # Allow overriding number of workers (Cloud Run can hang with excessive processes).
+        # Set DEMUCS_NUM_WORKERS=1 in constrained environments.
+        env_workers = os.getenv('DEMUCS_NUM_WORKERS')
+        if env_workers is not None:
+            try:
+                num_workers = max(1, min(int(env_workers), multiprocessing.cpu_count()))
+            except ValueError:
+                num_workers = multiprocessing.cpu_count()
+        else:
+            num_workers = multiprocessing.cpu_count()
+        logger.info(f"Demucs apply_model starting (mode={mode}, workers={num_workers})...")
         sources = apply.apply_model(
             model, wav[None],
             device='cpu',
@@ -97,8 +113,9 @@ def drum_extraction(path, dir=None, kernel='demucs', mode='performance', drum_st
             split=True,
             overlap=0.25,
             progress=True,
-            num_workers=multiprocessing.cpu_count()
+            num_workers=num_workers
             )[0]
+        logger.info("Demucs apply_model completed successfully.")
         
         sources = sources * ref.std() + ref.mean()
         drum=sources[0]
