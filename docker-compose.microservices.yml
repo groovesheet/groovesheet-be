@@ -18,9 +18,10 @@ services:
       - pubsub-emulator
 
   worker:
+    container_name: groovesheet-be-annoteator-worker
     build:
       context: .
-      dockerfile: worker-service/Dockerfile
+      dockerfile: annoteator-worker/Dockerfile
     environment:
       - GCS_BUCKET_NAME=groovesheet-jobs
       - GCP_PROJECT=groovesheet2025

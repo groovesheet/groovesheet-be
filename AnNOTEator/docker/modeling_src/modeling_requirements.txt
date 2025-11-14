@@ -1,9 +1,0 @@
-librosa
-matplotlib
-mido
-numpy
-pandas
-pedalboard
-sklearn
-tensorflow
-tqdm

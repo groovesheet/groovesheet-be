@@ -11,7 +11,7 @@
 ## CRITICAL SUCCESS FACTORS
 
 ⚠️ **MUST HAVE for this to work:**
-1. **Worker min-instances=1**: `gcloud run services update groovesheet-worker --min-instances=1`
+1. **Worker min-instances=1**: `gcloud run services update annoteator-worker --min-instances=1`
 2. **Worker CPU always on**: `--no-cpu-throttling` 
 3. **Limited Demucs workers**: `DEMUCS_NUM_WORKERS=1` (prevents Cloud Run hanging)
 4. **Correct Pub/Sub topic**: API publishes to `groovesheet-worker-tasks`, worker subscribes to `groovesheet-worker-tasks-sub`
@@ -25,7 +25,7 @@ Frontend → API Service (groovesheet-api) → Google Cloud Storage
     ↓           ↓
    Poll      Pub/Sub Topic (groovesheet-worker-tasks)
     ↑           ↓
-Download ← Worker Service (groovesheet-worker) ← Pub/Sub Subscription (groovesheet-worker-tasks-sub)
+Download ← Worker Service (annoteator-worker) ← Pub/Sub Subscription (groovesheet-worker-tasks-sub)
 ```
 
 ### Detailed Flow:
@@ -54,7 +54,7 @@ USE_CLOUD_STORAGE=true
 WORKER_TOPIC=groovesheet-worker-tasks   # CRITICAL: Required for Pub/Sub publish
 ```
 
-**Worker Service** (`groovesheet-worker`):
+**Worker Service** (`annoteator-worker`):
 ```bash
 USE_CLOUD_STORAGE=true
 GCS_BUCKET_NAME=groovesheet-jobs
@@ -70,7 +70,7 @@ DEMUCS_NUM_WORKERS=1                             # CRITICAL: Prevents Cloud Run 
 
 ### Current Production Images & Versions
 - **API**: `gcr.io/groovesheet2025/groovesheet-api:latest` (revision: groovesheet-api-00005-gp5)
-- **Worker**: `gcr.io/groovesheet2025/groovesheet-worker:latest` (revision: groovesheet-worker-00021-xrd)
+- **Worker**: `gcr.io/groovesheet2025/annoteator-worker:latest`
 - **GCS Bucket**: `groovesheet-jobs`
 - **Pub/Sub Topic**: `groovesheet-worker-tasks`
 - **Pub/Sub Subscription**: `groovesheet-worker-tasks-sub`
@@ -149,10 +149,9 @@ The frontend now uses **resilient infinite polling** with exponential backoff:
 # Allow unauthenticated: YES
 ```
 
-**Worker Service** (`groovesheet-worker`):
+**Worker Service** (`annoteator-worker`):
 ```bash
-# Current revision: groovesheet-worker-00021-xrd  
-# Image: gcr.io/groovesheet2025/groovesheet-worker:latest
+# Image: gcr.io/groovesheet2025/annoteator-worker:latest
 # Memory: 32GB
 # CPU: 8 cores
 # Min instances: 1 (CRITICAL - always running)
@@ -239,11 +238,11 @@ gcloud run deploy groovesheet-api \
 ./deploy-scripts/deploy-fast.ps1
 
 # OR manual deployment:
-docker build --platform=linux/amd64 -t gcr.io/groovesheet2025/groovesheet-worker:latest -f worker-service/Dockerfile.fast .
-docker push gcr.io/groovesheet2025/groovesheet-worker:latest
+docker build --platform=linux/amd64 -t gcr.io/groovesheet2025/annoteator-worker:latest -f annoteator-worker/Dockerfile.fast .
+docker push gcr.io/groovesheet2025/annoteator-worker:latest
 
-gcloud run deploy groovesheet-worker \
-  --image gcr.io/groovesheet2025/groovesheet-worker:latest \
+gcloud run deploy annoteator-worker \
+  --image gcr.io/groovesheet2025/annoteator-worker:latest \
   --platform managed \
   --region asia-southeast1 \
   --memory 32Gi \
@@ -261,7 +260,7 @@ gcloud run deploy groovesheet-worker \
 ### 4. Critical: Set Min Instances (if not done above)
 ```bash
 # Ensure worker stays running to listen for Pub/Sub messages
-gcloud run services update groovesheet-worker \
+gcloud run services update annoteator-worker \
   --region=asia-southeast1 \
   --min-instances=1 \
   --project=groovesheet2025
@@ -272,9 +271,9 @@ gcloud run services update groovesheet-worker \
 ### Common Issues & Solutions
 
 **Worker not processing jobs**:
-1. Check min-instances: `gcloud run services describe groovesheet-worker --region=asia-southeast1`
+1. Check min-instances: `gcloud run services describe annoteator-worker --region=asia-southeast1`
 2. Worker must have min-instances=1, otherwise Cloud Run shuts it down
-3. Check worker logs: `gcloud logging read "resource.labels.service_name=groovesheet-worker" --limit=20`
+3. Check worker logs: `gcloud logging read "resource.labels.service_name=annoteator-worker" --limit=20`
 
 **API not publishing messages**:
 1. Ensure WORKER_TOPIC env var is set in API service
@@ -296,11 +295,11 @@ gcloud pubsub subscriptions list --filter="name:groovesheet-worker-tasks-sub"
 gcloud pubsub subscriptions pull groovesheet-worker-tasks-sub --limit=5
 
 # Check service URLs
-gcloud run services list --filter="SERVICE_NAME:(groovesheet-api OR groovesheet-worker)"
+gcloud run services list --filter="SERVICE_NAME:(groovesheet-api OR annoteator-worker)"
 
 # Monitor logs
 gcloud logging read "resource.labels.service_name=groovesheet-api" --limit=10
-gcloud logging read "resource.labels.service_name=groovesheet-worker" --limit=10
+gcloud logging read "resource.labels.service_name=annoteator-worker" --limit=10
 ```
 
 ## Key Fixes That Made It Work
@@ -309,7 +308,7 @@ gcloud logging read "resource.labels.service_name=groovesheet-worker" --limit=10
 **Problem**: Demucs ML processing would hang indefinitely on Cloud Run
 **Solution**: Added `--no-cpu-throttling` flag to worker service
 ```bash
-gcloud run deploy groovesheet-worker --no-cpu-throttling
+gcloud run deploy annoteator-worker --no-cpu-throttling
 ```
 
 ### 2. Demucs Worker Limits (CRITICAL) 

@@ -1,5 +1,0 @@
-.dockerignore
-.ipynb_checkpoints
-.webm*
-__pycache__
-song_midi/

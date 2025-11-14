@@ -6,7 +6,7 @@ AI-powered drum transcription platform using AnNOTEator and Demucs for convertin
 
 **Microservices Design:**
 - **API Service** (`api-service/`): FastAPI + GCS + Pub/Sub publishing
-- **Worker Service** (`worker-service/`): TensorFlow 2.5.0 + AnNOTEator + Demucs processing  
+- **Worker Service** (`annoteator-worker/`): TensorFlow 2.5.0 + AnNOTEator + Demucs processing  
 - **Communication**: Google Cloud Pub/Sub (`groovesheet-worker-tasks` topic)
 
 ## Quick Start
@@ -32,13 +32,15 @@ docker-compose -f docker-compose.microservices.yml up --build
 ```
 groovesheet-be/
 ├── api-service/              # FastAPI service for job submission
-├── worker-service/           # Background processing service  
-├── AnNOTEator/              # Drum transcription ML models
+├── annoteator-worker/        # Background processing service  
+├── lib/                     # Shared libraries
+│   └── AnNOTEator/          # Drum transcription ML models
 ├── demucs/                  # Audio source separation
 ├── Baselines/               # ML model evaluation scripts
 ├── deploy-scripts/          # Deployment automation
 ├── test-scripts/            # Testing utilities
-├── shared-jobs/             # Local job storage
+├── testing/                 # Testing utilities and local jobs
+│   └── local-jobs/          # Local job storage for testing
 └── docker-compose.microservices.yml
 ```
 
@@ -92,8 +94,8 @@ PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python     # TensorFlow compatibility
 - `temp/`, `uploads/`, `logs/` - Temporary directories
 
 ✅ **Current Active Components:**
-- `api-service/`, `worker-service/` - Microservices
-- `AnNOTEator/`, `demucs/` - Core ML processing
+- `api-service/`, `annoteator-worker/` - Microservices
+- `lib/AnNOTEator/`, `demucs/` - Core ML processing
 - `docker-compose.microservices.yml` - Active configuration
 - `deploy-scripts/` - Deployment automation
 

@@ -8,7 +8,7 @@ Write-Host ""
 
 $PROJECT_ID = "groovesheet2025"
 $REGION = "asia-southeast1"
-$WORKER_IMAGE = "gcr.io/$PROJECT_ID/groovesheet-worker:latest"
+$WORKER_IMAGE = "gcr.io/$PROJECT_ID/annoteator-worker:latest"
 
 Write-Host "⚙️  Configuration:" -ForegroundColor Cyan
 Write-Host "   Image: $WORKER_IMAGE" -ForegroundColor White
@@ -17,7 +17,7 @@ Write-Host "   CPU: 8 cores" -ForegroundColor White
 Write-Host "   Timeout: 3600s (1 hour)" -ForegroundColor White
 Write-Host ""
 
-gcloud run deploy groovesheet-worker `
+gcloud run deploy annoteator-worker `
   --image $WORKER_IMAGE `
   --platform managed `
   --region $REGION `
@@ -39,7 +39,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "========================================" -ForegroundColor Green
     Write-Host ""
     Write-Host "Monitor logs:" -ForegroundColor Yellow
-    Write-Host "  gcloud logging read 'resource.labels.service_name=groovesheet-worker' --limit 50 --project=$PROJECT_ID" -ForegroundColor Gray
+    Write-Host "  gcloud logging read 'resource.labels.service_name=annoteator-worker' --limit 50 --project=$PROJECT_ID" -ForegroundColor Gray
     Write-Host ""
 } else {
     Write-Host ""
