@@ -1,0 +1,11 @@
+# AnNOTEator Pretrained Models
+
+This directory contains the pretrained neural network model for drum transcription.
+
+Required file: `complete_network.h5` (1.92 MB)
+
+If the model file is missing, copy it from:
+- Source: `AnNOTEator/inference/__pycache__/pretrained_models/annoteators/complete_network.h5`
+- Or download from the AnNOTEator repository: https://github.com/cb-42/AnNOTEator
+
+The model is a ConvNet trained on the Expanded Groove MIDI Dataset (E-GMD).
