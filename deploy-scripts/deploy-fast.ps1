@@ -6,7 +6,7 @@ $ErrorActionPreference = "Stop"
 
 $PROJECT_ID = "groovesheet2025"
 $REGION = "asia-southeast1"
-$WORKER_IMAGE = "gcr.io/$PROJECT_ID/groovesheet-worker"
+$WORKER_IMAGE = "gcr.io/$PROJECT_ID/annoteator-worker"
 $TAG = "latest"
 
 Write-Host "========================================" -ForegroundColor Cyan
@@ -23,7 +23,7 @@ Write-Host ""
 docker build `
     --platform=linux/amd64 `
     -t "${WORKER_IMAGE}:${TAG}" `
-    -f worker-service/Dockerfile.fast `
+    -f annoteator-worker/Dockerfile.fast `
     .
 
 if ($LASTEXITCODE -ne 0) {
@@ -59,7 +59,7 @@ Write-Host "   Memory: 32GB" -ForegroundColor White
 Write-Host "   CPU: 8 cores" -ForegroundColor White
 Write-Host ""
 
-gcloud run deploy groovesheet-worker `
+gcloud run deploy annoteator-worker `
   --image "${WORKER_IMAGE}:${TAG}" `
   --platform managed `
   --region $REGION `

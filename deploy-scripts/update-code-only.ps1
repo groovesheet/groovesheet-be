@@ -5,7 +5,7 @@
 $ErrorActionPreference = "Stop"
 
 $PROJECT_ID = "groovesheet2025"
-$SERVICE_NAME = "groovesheet-worker"
+$SERVICE_NAME = "annoteator-worker"
 $REGION = "asia-southeast1"
 
 Write-Host "========================================" -ForegroundColor Cyan
@@ -15,7 +15,7 @@ Write-Host ""
 Write-Host "This updates Python code WITHOUT rebuilding the Docker image." -ForegroundColor Yellow
 Write-Host "Use this for code changes in:" -ForegroundColor Yellow
 Write-Host "  - backend/app/services/annoteator_service.py" -ForegroundColor White
-Write-Host "  - worker-service/worker.py" -ForegroundColor White
+Write-Host "  - annoteator-worker/worker.py" -ForegroundColor White
 Write-Host ""
 Write-Host "DO NOT use this for dependency changes (requirements.txt)" -ForegroundColor Red
 Write-Host ""
@@ -26,7 +26,7 @@ Write-Host "📦 Packaging updated code..." -ForegroundColor Yellow
 
 # Copy files to temp
 Copy-Item -Path "backend/app/services/annoteator_service.py" -Destination "$TEMP_DIR/annoteator_service.py"
-Copy-Item -Path "worker-service/worker.py" -Destination "$TEMP_DIR/worker.py"
+Copy-Item -Path "annoteator-worker/worker.py" -Destination "$TEMP_DIR/worker.py"
 
 # Create update script
 $UPDATE_SCRIPT = @"
@@ -72,9 +72,9 @@ Write-Host ""
 
 # Create minimal Dockerfile
 $MINIMAL_DOCKERFILE = @"
-FROM gcr.io/groovesheet2025/groovesheet-worker:latest
+FROM gcr.io/groovesheet2025/annoteator-worker:latest
 COPY backend/app/services/annoteator_service.py /app/backend/app/services/annoteator_service.py
-COPY worker-service/worker.py /app/worker.py
+COPY annoteator-worker/worker.py /app/worker.py
 "@
 
 Set-Content -Path "Dockerfile.update" -Value $MINIMAL_DOCKERFILE

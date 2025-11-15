@@ -14,8 +14,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
+lib/
 parts/
 sdist/
 var/
@@ -83,6 +83,12 @@ models/omnizart_checkpoints/
 # BUT allow AnNOTEator pretrained models (needed for inference)
 !AnNOTEator/inference/pretrained_models/annoteators/*.h5
 !AnNOTEator/inference/pretrained_models/annoteators/*.pb
+!library/AnNOTEator/inference/pretrained_models/annoteators/*.h5
+!library/AnNOTEator/inference/pretrained_models/annoteators/*.pb
+
+# Always keep GitHub Copilot instructions
+!.github/instructions/*.md
+!.github/copilot-instructions.md
 
 # Audio files
 *.mp3

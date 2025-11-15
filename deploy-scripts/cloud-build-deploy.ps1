@@ -8,7 +8,7 @@ Write-Host ""
 
 $PROJECT_ID = "groovesheet2025"
 $REGION = "asia-southeast1"
-$WORKER_IMAGE = "gcr.io/$PROJECT_ID/groovesheet-worker"
+$WORKER_IMAGE = "gcr.io/$PROJECT_ID/annoteator-worker"
 
 Write-Host "Step 1: Verify Pub/Sub configuration..." -ForegroundColor Yellow
 Write-Host ""
@@ -36,7 +36,7 @@ Write-Host ""
 Set-Location "D:\Coding Files\GitHub\groovesheet\groovesheet-be"
 
 # Submit build using cloudbuild.yaml
-gcloud builds submit --config=worker-service/cloudbuild.yaml --project=$PROJECT_ID
+gcloud builds submit --config=annoteator-worker/cloudbuild.yaml --project=$PROJECT_ID
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
@@ -58,7 +58,7 @@ Write-Host "   Concurrency: 1 (one job at a time)" -ForegroundColor White
 Write-Host "   Git Tag: worker-v1.0-stable" -ForegroundColor White
 Write-Host ""
 
-gcloud run deploy groovesheet-worker `
+gcloud run deploy annoteator-worker `
   --image $WORKER_IMAGE `
   --platform managed `
   --region $REGION `
@@ -92,7 +92,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host ""
     Write-Host "Test your deployment:" -ForegroundColor Yellow
     Write-Host "  1. Upload a file via the frontend" -ForegroundColor Gray
-    Write-Host "  2. Monitor logs: gcloud logging read 'resource.labels.service_name=groovesheet-worker' --limit 50 --project=$PROJECT_ID" -ForegroundColor Gray
+    Write-Host "  2. Monitor logs: gcloud logging read 'resource.labels.service_name=annoteator-worker' --limit 50 --project=$PROJECT_ID" -ForegroundColor Gray
     Write-Host "  3. Check job status via API" -ForegroundColor Gray
     Write-Host ""
 } else {

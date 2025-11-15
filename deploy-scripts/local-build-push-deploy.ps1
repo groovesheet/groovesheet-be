@@ -8,7 +8,7 @@ Write-Host ""
 
 $PROJECT_ID = "groovesheet2025"
 $REGION = "asia-southeast1"
-$WORKER_IMAGE = "gcr.io/$PROJECT_ID/groovesheet-worker"
+$WORKER_IMAGE = "gcr.io/$PROJECT_ID/annoteator-worker"
 $TAG = "latest"
 
 Write-Host "This skips Cloud Build and pushes your local Docker image directly." -ForegroundColor Yellow
@@ -21,7 +21,7 @@ Set-Location "D:\Coding Files\GitHub\groovesheet\groovesheet-be"
 Write-Host "Step 1: Building Docker image locally..." -ForegroundColor Yellow
 Write-Host ""
 
-docker build --platform=linux/amd64 -f worker-service/Dockerfile -t "${WORKER_IMAGE}:${TAG}" .
+docker build --platform=linux/amd64 -f annoteator-worker/Dockerfile -t "${WORKER_IMAGE}:${TAG}" .
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Build failed" -ForegroundColor Red
@@ -57,7 +57,7 @@ Write-Host "   Memory: 32GB" -ForegroundColor White
 Write-Host "   CPU: 8 cores" -ForegroundColor White
 Write-Host ""
 
-gcloud run deploy groovesheet-worker `
+gcloud run deploy annoteator-worker `
   --image "${WORKER_IMAGE}:${TAG}" `
   --platform managed `
   --region $REGION `
@@ -80,7 +80,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host ""
     Write-Host "Test your deployment:" -ForegroundColor Yellow
     Write-Host "  1. Upload a file via frontend" -ForegroundColor Gray
-    Write-Host "  2. Check logs: gcloud logging read 'resource.labels.service_name=groovesheet-worker' --limit 50" -ForegroundColor Gray
+    Write-Host "  2. Check logs: gcloud logging read 'resource.labels.service_name=annoteator-worker' --limit 50" -ForegroundColor Gray
     Write-Host ""
 } else {
     Write-Host ""
