@@ -24,6 +24,10 @@ wheels/
 .installed.cfg
 *.egg
 
+# BUT allow library/demucs (needed for local development)
+!library/demucs/
+!library/demucs/**
+
 # PyInstaller
 *.manifest
 *.spec
@@ -88,7 +92,6 @@ models/omnizart_checkpoints/
 
 # Always keep GitHub Copilot instructions
 !.github/instructions/*.md
-!.github/copilot-instructions.md
 
 # Audio files
 *.mp3
@@ -143,6 +146,9 @@ test_*.py.bak
 *.zip
 *.tar.gz
 *.rar
+
+# BUT allow library/demucs archives if needed
+!library/demucs/*.tar.gz
 
 # Generated MusicXML and MIDI from testing
 test_output/*.musicxml
