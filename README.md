@@ -33,7 +33,7 @@ docker-compose -f docker-compose.microservices.yml up --build
 groovesheet-be/
 ├── api-service/              # FastAPI service for job submission
 ├── annoteator-worker/        # Background processing service  
-├── lib/                     # Shared libraries
+├── library/                 # Shared libraries
 │   └── AnNOTEator/          # Drum transcription ML models
 ├── demucs/                  # Audio source separation
 ├── Baselines/               # ML model evaluation scripts
@@ -95,7 +95,7 @@ PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python     # TensorFlow compatibility
 
 ✅ **Current Active Components:**
 - `api-service/`, `annoteator-worker/` - Microservices
-- `lib/AnNOTEator/`, `demucs/` - Core ML processing
+- `library/AnNOTEator/`, `demucs/` - Core ML processing
 - `docker-compose.microservices.yml` - Active configuration
 - `deploy-scripts/` - Deployment automation
 
