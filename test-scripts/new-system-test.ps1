@@ -43,7 +43,7 @@ Write-Host ""
 # Step 1: Start the microservices system
 Write-Host "Step 1: Starting microservices system (LOCAL MODE)..." -ForegroundColor Yellow
 Write-Host "Stopping any existing containers..." -ForegroundColor Gray
-docker-compose -f docker-compose.local.yml down 2>&1 | Out-Null
+docker-compose -f docker-compose.local.yml down 2>&1 | Out-Host
 
 # Clean old jobs (keep uploads folder if present)
 Write-Host "Cleaning previous local jobs..." -ForegroundColor Gray
@@ -52,7 +52,12 @@ if (Test-Path "$PROJECT_ROOT\testing\local-jobs") {
 }
 
 Write-Host "Building and starting services..." -ForegroundColor Gray
-docker-compose -f docker-compose.local.yml up --build -d 2>&1 | Out-Null
+docker-compose -f docker-compose.local.yml up --build -d 2>&1 | Out-Host
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "❌ Failed to start microservices" -ForegroundColor Red
+    exit 1
+}
 
 Write-Host "✅ Services started" -ForegroundColor Green
 Write-Host ""
