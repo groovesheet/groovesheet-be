@@ -1,0 +1,36 @@
+# Backend dependencies
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-dotenv==1.0.0
+
+# Cloud dependencies
+google-cloud-storage==1.42.3
+google-cloud-pubsub==2.8.0
+
+# PyTorch (for Demucs) - Python 3.8 compatible
+torch==1.13.1
+torchaudio==0.13.1
+
+# Demucs package
+demucs==3.0.4
+
+# Demucs dependencies
+dora-search>=0.1.12
+diffq==0.2.4
+einops
+julius>=0.2.3
+lameenc>=1.2
+submitit
+soundfile>=0.10.3
+
+# Audio processing
+librosa>=0.9.0
+scipy>=1.5.0
+
+# Additional utilities
+pandas>=1.4.3
+numpy==1.24.0
+numba>=0.56.0
+tqdm>=4.49.0
+
+

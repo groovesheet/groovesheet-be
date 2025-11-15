@@ -30,15 +30,15 @@ except ImportError:
     # python-dotenv not installed, skip
     pass
 
-# Add AnNOTEator to path (from lib directory)
-# In Docker: /app/services/annoteator_service.py -> /app/lib/AnNOTEator
-# Locally: annoteator-worker/services/annoteator_service.py -> lib/AnNOTEator
-if (Path(__file__).parent.parent / "lib" / "AnNOTEator").exists():
-    # Docker container structure: /app/services -> /app/lib/AnNOTEator
-    ANNOTEATOR_PATH = Path(__file__).parent.parent / "lib" / "AnNOTEator"
+# Add AnNOTEator to path (from library directory)
+# In Docker: /app/services/annoteator_service.py -> /app/library/AnNOTEator
+# Locally: annoteator-worker/services/annoteator_service.py -> library/AnNOTEator
+if (Path(__file__).parent.parent / "library" / "AnNOTEator").exists():
+    # Docker container structure: /app/services -> /app/library/AnNOTEator
+    ANNOTEATOR_PATH = Path(__file__).parent.parent / "library" / "AnNOTEator"
 else:
-    # Local development structure: annoteator-worker/services -> lib/AnNOTEator
-    ANNOTEATOR_PATH = Path(__file__).parent.parent.parent / "lib" / "AnNOTEator"
+    # Local development structure: annoteator-worker/services -> library/AnNOTEator
+    ANNOTEATOR_PATH = Path(__file__).parent.parent.parent / "library" / "AnNOTEator"
 sys.path.insert(0, str(ANNOTEATOR_PATH))
 
 # ---------------------------
